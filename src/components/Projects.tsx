@@ -1,139 +1,117 @@
-import { ArrowUpRight, Github } from 'lucide-react'
+import { Github, ExternalLink } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { useScrollAnimation, fadeInUp, staggerContainer } from '../hooks/useScrollAnimation'
 
 const Projects = () => {
+  const { ref, controls } = useScrollAnimation()
+
   const projects = [
     {
-      year: '2024',
-      title: 'Save Image As',
-      category: 'Chrome Extension',
-      description: 'A browser extension that transforms how users save images online. Built with vanilla JavaScript and Chrome APIs, it provides intelligent naming suggestions and streamlined download management.',
-      metrics: '100+ active users',
-      technologies: ['JavaScript', 'Chrome APIs', 'Manifest V3'],
-      links: {
-        live: 'https://chromewebstore.google.com/detail/save-image-as/bcngajhkkkhfalgljjjjbjacjcdlophj',
-        github: 'https://github.com/AbhishekBadar'
-      },
-      featured: true
-    },
-    {
-      year: '2024',
       title: 'DoSpaces Plugin',
-      category: 'Open Source',
-      description: 'An open-source plugin that seamlessly integrates osTicket with DigitalOcean Spaces, enabling efficient attachment management and reducing support response times.',
-      metrics: '30% efficiency improvement',
-      technologies: ['PHP', 'DigitalOcean Spaces', 'REST API'],
-      links: {
-        github: 'https://github.com/AbhishekBadar'
-      }
+      description: 'An open-source plugin that offloads osTicket attachments to DigitalOcean Spaces, generating secure public links for agents and improving response efficiency by 30%.',
+      tech: ['PHP', 'DigitalOcean Spaces', 'REST API'],
+      github: 'https://github.com/AbhishekBadar',
+      featured: true,
     },
     {
-      year: '2023',
-      title: 'Traffic Density Analyzer',
-      category: 'AI/ML Project',
-      description: 'An intelligent traffic management system using computer vision to analyze real-time traffic density and optimize signal timing, contributing to smart city infrastructure.',
-      metrics: '25% congestion reduction',
-      technologies: ['Python', 'YOLO', 'OpenCV', 'Machine Learning'],
-      links: {
-        github: 'https://github.com/AbhishekBadar/Traffic-Density-Analyzer'
-      }
-    },
-    {
-      year: '2023',
       title: 'PuzzleIT',
-      category: 'Web Application',
-      description: 'An immersive escape room experience built for the web, featuring complex puzzles and real-time collaboration. Designed to test critical thinking and problem-solving skills.',
-      metrics: '200+ participants',
-      technologies: ['React', 'Redux', 'MongoDB', 'Node.js'],
-      links: {
-        github: 'https://github.com/AbhishekBadar/puzzleIT'
-      }
-    }
+      description: 'A web-based escape-room-themed puzzle game with real-time collaboration. Engaged 200+ participants in solving challenges testing critical thinking.',
+      tech: ['React', 'Redux', 'MongoDB', 'Node.js'],
+      github: 'https://github.com/AbhishekBadar/puzzleIT',
+    },
+    {
+      title: 'Save Image As',
+      description: 'A Chrome extension that transforms how users save images online. Provides intelligent naming suggestions and streamlined download management with 100+ active users.',
+      tech: ['JavaScript', 'Chrome APIs'],
+      external: 'https://chromewebstore.google.com/detail/save-image-as/bcngajhkkkhfalgljjjjbjacjcdlophj',
+    },
+    {
+      title: 'WhileGPTThinks',
+      description: 'A lighthearted Chrome extension that redirects you to YouTube Shorts while ChatGPT generates a reply, then brings you back when the response is ready.',
+      tech: ['JavaScript', 'Chrome APIs'],
+      external: 'https://chromewebstore.google.com/detail/whilegptthinks/kfednbiimichdighcalhmahdnijkmaia',
+    },
+    {
+      title: 'Copy URL & QR Code Generator',
+      description: 'The ultimate URL copying tool with instant QR code generation for cross-device sharing. Supports plain text, Markdown, and HTML formats with a draggable floating button.',
+      tech: ['JavaScript', 'Chrome APIs'],
+      external: 'https://chromewebstore.google.com/detail/copy-url-qr-code-generato/jpkhnbfgihcimdcalonoagmfonegpmcd',
+    },
+    {
+      title: 'Traffic Density Analyzer',
+      description: 'Real-time traffic management system using YOLO for vehicle detection and dynamic signal timing, reducing congestion by 25%.',
+      tech: ['Python', 'YOLO', 'OpenCV', 'ML'],
+      github: 'https://github.com/AbhishekBadar/Traffic-Density-Analyzer',
+    },
   ]
 
   return (
-    <section id="work" className="section">
-      <div className="container">
-        <div className="space-y-16">
-          <div className="max-w-2xl">
-            <h2 className="text-headline mb-6">Selected Projects</h2>
-            <p className="text-body-lg text-gray-600">
-              A curated selection of projects that showcase my approach to solving complex 
-              problems through thoughtful design and robust engineering.
-            </p>
-          </div>
-          
-          <div className="space-y-8">
-            {projects.map((project, index) => (
-              <div key={index} className="card-minimal group">
-                <div className="grid md:grid-cols-12 gap-6 md:gap-8">
-                  {/* Year */}
-                  <div className="md:col-span-2">
-                    <div className="text-label text-gray-400 font-mono">
-                      {project.year}
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="md:col-span-7 space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-title">{project.title}</h3>
-                        <span className="badge text-xs">
-                          {project.category}
-                        </span>
-                      </div>
-                      
-                      <p className="text-body text-gray-600 leading-relaxed">
-                        {project.description}
-                      </p>
-                      
-                      <div className="text-label text-blue-600 font-medium">
-                        {project.metrics}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {project.technologies.map((tech, techIndex) => (
-                        <span key={techIndex} className="badge badge-mono">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Links */}
-                  <div className="md:col-span-3 flex flex-col items-start md:items-end gap-3">
-                    {project.links.live && (
-                      <a
-                        href={project.links.live}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-link group flex items-center gap-2"
-                      >
-                        View Live
-                        <ArrowUpRight 
-                          size={14} 
-                          className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" 
-                        />
-                      </a>
-                    )}
-                    
-                    <a
-                      href={project.links.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-link flex items-center gap-2"
-                    >
-                      <Github size={14} />
-                      Source
-                    </a>
-                  </div>
-                </div>
+    <section id="projects" className="section">
+      <motion.div ref={ref} initial="hidden" animate={controls} variants={fadeInUp}>
+        <h2 className="numbered-heading" data-num="03.">Some Things I've Built</h2>
+      </motion.div>
+
+      <motion.div
+        ref={ref}
+        initial="hidden"
+        animate={controls}
+        variants={staggerContainer}
+        className="grid md:grid-cols-2 gap-4"
+      >
+        {projects.map((project, i) => (
+          <motion.div
+            key={i}
+            variants={fadeInUp}
+            className="project-card"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="text-green-accent">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                </svg>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+              <div className="flex items-center gap-4">
+                {project.github && (
+                  <a
+                    href={project.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-light hover:text-green-accent transition-colors"
+                    aria-label="GitHub"
+                  >
+                    <Github size={18} />
+                  </a>
+                )}
+                {project.external && (
+                  <a
+                    href={project.external}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-light hover:text-green-accent transition-colors"
+                    aria-label="External Link"
+                  >
+                    <ExternalLink size={18} />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <h3 className="text-slate-lightest text-lg font-semibold mb-2 hover:text-green-accent transition-colors">
+              {project.title}
+            </h3>
+
+            <p className="text-slate text-sm leading-relaxed mb-6">
+              {project.description}
+            </p>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {project.tech.map((t) => (
+                <span key={t} className="tech-tag">{t}</span>
+              ))}
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
     </section>
   )
 }

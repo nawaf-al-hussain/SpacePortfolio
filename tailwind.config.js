@@ -11,28 +11,23 @@ module.exports = {
         'mono': ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
-        'cyan': {
-          50: '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
-        }
+        navy: {
+          DEFAULT: '#0a192f',
+          light: '#112240',
+          lighter: '#1d3461',
+        },
+        slate: {
+          DEFAULT: '#8892b0',
+          light: '#a8b2d1',
+          lightest: '#ccd6f6',
+        },
+        green: {
+          accent: '#64ffda',
+        },
       },
       maxWidth: {
-        '4xl': '840px', /* Max width as specified */
+        '5xl': '1000px',
       },
-      spacing: {
-        '32': '8rem', /* 128px - vertical rhythm 28-32px */
-      },
-      lineHeight: {
-        'relaxed': '1.7',
-      }
     },
   },
   plugins: [],
