@@ -124,8 +124,9 @@ const Hero = () => {
         </div>
 
         <h1
+          className="hero-name"
           style={{
-            fontSize: 'clamp(48px, 10vw, 140px)',
+            fontSize: 'clamp(44px, 10vw, 140px)',
             lineHeight: 0.88, fontWeight: 400, letterSpacing: '-0.04em',
             margin: 0, whiteSpace: 'nowrap',
             fontVariationSettings: `"opsz" 144, "SOFT" 50, "WONK" 1`,
@@ -277,6 +278,12 @@ const Hero = () => {
         <div style={{ fontSize: 10, opacity: 0.6, marginBottom: 4 }}>SCROLL ↓</div>
         <div>01 / 05 — intro</div>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .hero-name { white-space: normal; }
+        }
+      `}</style>
     </section>
   )
 }

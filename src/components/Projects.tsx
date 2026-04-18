@@ -115,10 +115,10 @@ const ProjectFeatured = ({ p }: { p: Project }) => {
       onMouseLeave={() => setHovered(false)}
       className="featured-grid"
       style={{
-        display: 'grid', gap: 40,
+        display: 'grid', gap: 'clamp(24px, 3vw, 40px)',
         background: T.cream,
         border: `1px solid ${T.warmLight}55`, borderRadius: 6,
-        padding: 40, position: 'relative', overflow: 'hidden',
+        padding: 'clamp(24px, 4vw, 40px)', position: 'relative', overflow: 'hidden',
         transition: 'transform 0.4s',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         textDecoration: 'none', color: 'inherit',
@@ -144,7 +144,7 @@ const ProjectFeatured = ({ p }: { p: Project }) => {
         </div>
         <h3
           style={{
-            fontSize: 44, fontWeight: 500, letterSpacing: -1.2, margin: 0,
+            fontSize: 'clamp(32px, 5vw, 44px)', fontWeight: 500, letterSpacing: -1.2, margin: 0,
             color: T.ink, lineHeight: 1.05, fontStyle: 'italic',
             fontVariationSettings: `"opsz" 72, "SOFT" 60, "WONK" 1`,
           }}

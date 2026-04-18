@@ -126,7 +126,8 @@ const Experience = () => {
           style={{
             background: T.cream,
             border: `1px solid ${T.warmLight}55`,
-            borderRadius: 6, padding: '40px 44px',
+            borderRadius: 6,
+            padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 44px)',
             animation: 'ab-fadein 0.5s cubic-bezier(.2,.9,.3,1)',
             position: 'relative', overflow: 'hidden',
           }}
@@ -147,7 +148,7 @@ const Experience = () => {
           </div>
           <h3
             style={{
-              fontSize: 36, fontWeight: 500, letterSpacing: -0.8, margin: 0,
+              fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 500, letterSpacing: -0.8, margin: 0,
               color: T.ink, lineHeight: 1.1,
               fontVariationSettings: `"opsz" 72, "SOFT" 40`,
             }}

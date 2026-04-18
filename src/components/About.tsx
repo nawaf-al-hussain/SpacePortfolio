@@ -92,6 +92,7 @@ const About = () => {
             {skillGroups.map((g, gi) => (
               <div
                 key={g.cat}
+                className="skill-row"
                 style={{
                   display: 'grid', gridTemplateColumns: '90px 1fr', gap: 14, alignItems: 'center',
                   opacity: shown ? 1 : 0,
@@ -161,6 +162,13 @@ const About = () => {
         .about-grid { grid-template-columns: 1fr; }
         @media (min-width: 900px) {
           .about-grid { grid-template-columns: 1.2fr 1fr; }
+        }
+        @media (max-width: 480px) {
+          .skill-row {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+            align-items: flex-start !important;
+          }
         }
       `}</style>
     </section>

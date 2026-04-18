@@ -330,20 +330,50 @@ const AboutOrbit = () => {
 
     raf = requestAnimationFrame(draw)
 
-    const onMove = (e: MouseEvent) => {
+    const setPos = (clientX: number, clientY: number) => {
       const r = canvas.getBoundingClientRect()
       mouseRef.current = {
-        x: e.clientX - r.left,
-        y: e.clientY - r.top,
+        x: clientX - r.left,
+        y: clientY - r.top,
         active: true,
       }
     }
+
+    const onMove = (e: MouseEvent) => setPos(e.clientX, e.clientY)
     const onLeave = () => {
       mouseRef.current.active = false
     }
 
+    // Touch: drag to aim, lift to fire (tap-to-shoot also works)
+    let touchFadeTimer: ReturnType<typeof setTimeout> | null = null
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 0) return
+      if (touchFadeTimer) { clearTimeout(touchFadeTimer); touchFadeTimer = null }
+      const t = e.touches[0]
+      setPos(t.clientX, t.clientY)
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 0) return
+      // block page scroll while aiming inside the canvas
+      e.preventDefault()
+      const t = e.touches[0]
+      setPos(t.clientX, t.clientY)
+    }
+    const onTouchEnd = () => {
+      const r = canvas.getBoundingClientRect()
+      fire(r.width / 2, r.height / 2)
+      // keep aim visible briefly so user sees where they shot, then fade
+      touchFadeTimer = setTimeout(() => {
+        mouseRef.current.active = false
+      }, 650)
+    }
+
     canvas.addEventListener('mousemove', onMove)
     canvas.addEventListener('mouseleave', onLeave)
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true })
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false })
+    canvas.addEventListener('touchend', onTouchEnd)
+    canvas.addEventListener('touchcancel', onTouchEnd)
 
     return () => {
       cancelAnimationFrame(raf)
@@ -351,6 +381,11 @@ const AboutOrbit = () => {
       canvas.removeEventListener('mousemove', onMove)
       canvas.removeEventListener('mouseleave', onLeave)
       canvas.removeEventListener('click', onClick)
+      canvas.removeEventListener('touchstart', onTouchStart)
+      canvas.removeEventListener('touchmove', onTouchMove)
+      canvas.removeEventListener('touchend', onTouchEnd)
+      canvas.removeEventListener('touchcancel', onTouchEnd)
+      if (touchFadeTimer) clearTimeout(touchFadeTimer)
     }
   }, [resetTick])
 
@@ -406,7 +441,10 @@ const AboutOrbit = () => {
           <canvas
             ref={canvasRef}
             key={resetTick}
-            style={{ display: 'block', width: '100%', height: 420, cursor: 'crosshair' }}
+            style={{
+              display: 'block', width: '100%', height: 'clamp(320px, 60vw, 420px)',
+              cursor: 'crosshair', touchAction: 'none',
+            }}
           />
           {allCaptured && (
             <div
@@ -462,7 +500,7 @@ const AboutOrbit = () => {
           <span>
             {captured.length === 0 ? (
               <>
-                aim &amp; <b style={{ color: T.ink }}>click</b> to capture skills
+                aim &amp; <b style={{ color: T.ink }}>tap</b> to capture skills
               </>
             ) : (
               <span style={{ color: T.ink }}>
