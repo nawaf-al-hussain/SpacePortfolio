@@ -1,111 +1,148 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
-import { useSmoothScroll } from '../hooks/useSmoothScroll'
+import { useEffect, useState } from 'react'
+import { T, scrollToId } from '../lib/designTokens'
+import { useScrollProgress } from '../hooks/useReveal'
+
+const nav = [
+  { id: 'about', num: '01', label: 'About' },
+  { id: 'experience', num: '02', label: 'Work' },
+  { id: 'projects', num: '03', label: 'Projects' },
+  { id: 'contact', num: '04', label: 'Contact' },
+]
 
 const Header = () => {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { scrollToElement, scrollToTop } = useSmoothScroll()
+  const progress = useScrollProgress()
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const navItems = [
-    { id: 'about', num: '01', label: 'About' },
-    { id: 'experience', num: '02', label: 'Experience' },
-    { id: 'projects', num: '03', label: 'Projects' },
-    { id: 'contact', num: '04', label: 'Contact' },
-  ]
-
-  const handleNavClick = (id: string) => {
-    scrollToElement(id)
-    setMobileMenuOpen(false)
-  }
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-navy/90 backdrop-blur-md shadow-lg shadow-navy/50 py-3'
-            : 'bg-transparent py-6'
-        }`}
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          padding: scrolled ? '14px 40px' : '24px 40px',
+          background: scrolled ? 'rgba(244,232,212,0.88)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(12px)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(26,20,16,0.08)' : '1px solid transparent',
+          transition: 'all 0.35s cubic-bezier(.2,.9,.3,1)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          fontFamily: T.mono, fontSize: 12, color: T.warmBrown,
+        }}
       >
-        <nav className="container flex items-center justify-between">
-          <button
-            onClick={() => scrollToTop()}
-            className="text-green-accent font-mono text-sm hover:opacity-70 transition-opacity"
-          >
-            AB
-          </button>
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: T.serif, fontStyle: 'italic', fontSize: 22,
+            fontWeight: 600, color: T.ink, letterSpacing: -0.5, padding: 0,
+            fontVariationSettings: `"opsz" 72, "SOFT" 80, "WONK" 1`,
+          }}
+        >
+          ab.
+        </button>
 
-          {/* Desktop */}
-          <div className="hidden md:flex items-center gap-7">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className="text-slate-light hover:text-green-accent transition-colors text-sm"
-              >
-                <span className="mono mr-1">{item.num}.</span>
-                {item.label}
-              </button>
-            ))}
-            <a
-              href="/Resume_AbhishekBadar.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-outline text-xs py-2 px-4"
+        <nav style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
+          {nav.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => scrollToId(n.id)}
+              className="hidden md:inline-flex"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: T.mono, fontSize: 12, color: T.warmBrown,
+                padding: 0, transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = T.ink)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = T.warmBrown)}
             >
-              Resume
-            </a>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden text-green-accent"
-            aria-label="Menu"
+              <span style={{ color: T.amber, marginRight: 6 }}>{n.num}</span>
+              {n.label}
+            </button>
+          ))}
+          <a
+            href="/Resume_AbhishekBadar.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              padding: '8px 16px', border: `1px solid ${T.ink}`,
+              borderRadius: 999, color: T.ink, fontSize: 11, fontWeight: 500,
+              textDecoration: 'none', letterSpacing: 0.3,
+            }}
           >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+            Résumé ↗
+          </a>
         </nav>
       </header>
 
-      {/* Mobile overlay */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-navy-light/95 backdrop-blur-lg md:hidden flex flex-col items-center justify-center gap-8"
+      {/* Left rail */}
+      <div
+        className="hidden lg:block"
+        style={{
+          position: 'fixed', left: 24, top: '50%', zIndex: 40,
+          transform: 'translateY(-50%) rotate(-90deg)', transformOrigin: 'left center',
+          fontFamily: T.mono, fontSize: 10, color: T.warmMid,
+          letterSpacing: 3, textTransform: 'uppercase', whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+        }}
+      >
+        Portfolio / No. 003 / Pune, IN
+      </div>
+
+      {/* Right rail — socials */}
+      <div
+        className="hidden lg:flex"
+        style={{
+          position: 'fixed', right: 28, top: '50%', zIndex: 40,
+          transform: 'translateY(-50%)',
+          flexDirection: 'column', gap: 22,
+          fontFamily: T.mono, fontSize: 11, color: T.warmMid,
+        }}
+      >
+        {[
+          { label: 'GitHub', href: 'https://github.com/AbhishekBadar' },
+          { label: 'LinkedIn', href: 'https://www.linkedin.com/in/abhishekbadar' },
+          { label: 'Medium', href: 'https://medium.com/@abhishekbadar' },
+          { label: 'Email', href: 'mailto:ab15.badar@gmail.com' },
+        ].map((s) => (
+          <a
+            key={s.label}
+            href={s.href}
+            target={s.href.startsWith('http') ? '_blank' : undefined}
+            rel="noopener noreferrer"
+            style={{
+              color: T.warmMid, textDecoration: 'none',
+              writingMode: 'vertical-rl' as const, textOrientation: 'mixed' as const,
+              letterSpacing: 2, transition: 'color 0.2s, transform 0.2s',
+              display: 'inline-block',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = T.amber
+              e.currentTarget.style.transform = 'translateY(-4px)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = T.warmMid
+              e.currentTarget.style.transform = 'translateY(0)'
+            }}
           >
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className="text-slate-lightest text-lg"
-              >
-                <span className="mono block text-center mb-1">{item.num}.</span>
-                {item.label}
-              </button>
-            ))}
-            <a
-              href="/Resume_AbhishekBadar.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-outline mt-4"
-            >
-              Resume
-            </a>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {s.label}
+          </a>
+        ))}
+        <div style={{ width: 1, height: 80, background: T.warmMid, margin: '8px auto 0' }} />
+      </div>
+
+      {/* Scroll progress */}
+      <div
+        style={{
+          position: 'fixed', top: 0, left: 0, zIndex: 51,
+          height: 2, width: `${progress * 100}%`,
+          background: T.amber, transition: 'width 0.1s linear',
+        }}
+      />
     </>
   )
 }
