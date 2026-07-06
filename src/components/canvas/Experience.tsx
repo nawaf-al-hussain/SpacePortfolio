@@ -45,6 +45,16 @@ export default function Experience() {
           state.scene.fog = new THREE.FogExp2("#0a0618", 0.0035);
           // Handle for console debugging / tests
           (window as unknown as { __r3f: typeof state }).__r3f = state;
+          // Graceful recovery if the GPU drops the context (tab pressure,
+          // driver reset): one clean reload restores the scene.
+          state.gl.domElement.addEventListener(
+            "webglcontextlost",
+            (e) => {
+              e.preventDefault();
+              window.location.reload();
+            },
+            { once: true }
+          );
         }}
       >
         <Suspense fallback={null}>

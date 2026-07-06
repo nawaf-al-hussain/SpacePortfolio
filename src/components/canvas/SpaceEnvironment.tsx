@@ -373,7 +373,9 @@ export default function SpaceEnvironment() {
     // Cluster on the projects ring outskirts (45)
     for (let k = 0; k < 45; k++, i++) {
       const a = Math.random() * Math.PI * 2;
-      const r = PROJECTS_PLANET.ringOuter + 2 + Math.random() * 12;
+      // Hug the ring — the camera laps the planet at radius ~42, so keep
+      // these rocks well inside its path.
+      const r = PROJECTS_PLANET.ringOuter + 1 + Math.random() * 6;
       v.set(Math.cos(a) * r, (Math.random() - 0.5) * 2, Math.sin(a) * r)
         .applyEuler(PROJECTS_RING_TILT)
         .add(PROJECTS_PLANET.position);

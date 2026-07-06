@@ -18,7 +18,7 @@ function makeCanvas(w: number, h: number) {
 
 function toTexture(canvas: HTMLCanvasElement): THREE.CanvasTexture {
   const tex = new THREE.CanvasTexture(canvas);
-  tex.anisotropy = 4;
+  tex.anisotropy = 8;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
@@ -54,10 +54,10 @@ export function makeTextTexture(
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.shadowColor = glow;
-  ctx.shadowBlur = size * 0.35;
+  ctx.shadowBlur = size * 0.14;
   ctx.fillStyle = color;
   ctx.fillText(spaced, canvas.width / 2, canvas.height / 2);
-  ctx.shadowBlur = size * 0.12;
+  ctx.shadowBlur = size * 0.05;
   ctx.fillText(spaced, canvas.width / 2, canvas.height / 2);
 
   return { texture: toTexture(canvas), aspect: canvas.width / canvas.height };
@@ -96,9 +96,12 @@ export function makeGlowTexture(
  * project's palette.
  */
 export function makeProjectCardTexture(project: Project): THREE.CanvasTexture {
+  // Drawn in 640x400 logical space at 2x physical resolution so titles
+  // stay crisp when the cards are viewed from orbit distance.
   const W = 640;
   const H = 400;
-  const { canvas, ctx } = makeCanvas(W, H);
+  const { canvas, ctx } = makeCanvas(W * 2, H * 2);
+  ctx.scale(2, 2);
 
   const r = 18;
   ctx.beginPath();
@@ -201,40 +204,42 @@ export function makeProjectCardTexture(project: Project): THREE.CanvasTexture {
 
 /* ------------------------------------------------------------------ */
 
-/** Glass HUD skill card with a progress ring, like the floating panels. */
+/** Holographic skill module — bold, high-contrast, readable at distance. */
 export function makeSkillCardTexture(skill: Skill): THREE.CanvasTexture {
+  // 512x288 logical space at 2x physical resolution
   const W = 512;
   const H = 288;
-  const { canvas, ctx } = makeCanvas(W, H);
+  const { canvas, ctx } = makeCanvas(W * 2, H * 2);
+  ctx.scale(2, 2);
 
-  // Panel
+  // Panel — near-opaque so text never fights the starfield behind it
   ctx.beginPath();
-  ctx.roundRect(6, 6, W - 12, H - 12, 20);
+  ctx.roundRect(5, 5, W - 10, H - 10, 22);
   const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, "rgba(30,34,64,0.88)");
-  bg.addColorStop(1, "rgba(12,14,30,0.88)");
+  bg.addColorStop(0, "rgba(16,22,44,0.97)");
+  bg.addColorStop(1, "rgba(7,10,22,0.97)");
   ctx.fillStyle = bg;
   ctx.fill();
-  ctx.strokeStyle = "rgba(154,220,255,0.55)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(154,220,255,0.8)";
+  ctx.lineWidth = 3;
   ctx.stroke();
 
   // Corner accents
-  ctx.strokeStyle = "rgba(154,220,255,0.95)";
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#7df9ff";
+  ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.moveTo(6, 40);
-  ctx.lineTo(6, 26);
-  ctx.quadraticCurveTo(6, 6, 26, 6);
-  ctx.lineTo(40, 6);
+  ctx.moveTo(5, 44);
+  ctx.lineTo(5, 28);
+  ctx.quadraticCurveTo(5, 5, 28, 5);
+  ctx.lineTo(44, 5);
   ctx.stroke();
 
   // Module ring with the HUD number inside
-  const cx = W - 96;
-  const cy = H / 2;
-  const R = 62;
-  ctx.lineWidth = 10;
-  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  const cx = W - 88;
+  const cy = 84;
+  const R = 46;
+  ctx.lineWidth = 9;
+  ctx.strokeStyle = "rgba(255,255,255,0.14)";
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, Math.PI * 2);
   ctx.stroke();
@@ -243,32 +248,32 @@ export function makeSkillCardTexture(skill: Skill): THREE.CanvasTexture {
   grad.addColorStop(1, "#a78bfa");
   ctx.strokeStyle = grad;
   ctx.lineCap = "round";
-  ctx.shadowColor = "rgba(76,201,240,0.8)";
-  ctx.shadowBlur = 14;
+  ctx.shadowColor = "rgba(76,201,240,0.7)";
+  ctx.shadowBlur = 10;
   ctx.beginPath();
   ctx.arc(cx, cy, R, -Math.PI / 2, Math.PI * 1.32);
   ctx.stroke();
   ctx.shadowBlur = 0;
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 38px ${DISPLAY_FONT}`;
+  ctx.font = `700 32px ${DISPLAY_FONT}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(skill.num, cx, cy + 2);
 
-  // Text
+  // Name — big and bold, up to two lines
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 36px ${DISPLAY_FONT}`;
-  wrapText(ctx, skill.name, 40, 110, W - 240, 44);
-  ctx.fillStyle = "rgba(154,220,255,0.85)";
-  ctx.font = `500 19px ${MONO_FONT}`;
-  wrapText(ctx, skill.items.toUpperCase(), 40, 196, W - 230, 28);
+  ctx.shadowColor = "rgba(76,201,240,0.35)";
+  ctx.shadowBlur = 6;
+  ctx.font = `700 52px ${DISPLAY_FONT}`;
+  wrapText(ctx, skill.name, 36, 106, W - 190, 58);
+  ctx.shadowBlur = 0;
 
-  // Tiny telemetry row
-  ctx.fillStyle = "rgba(255,255,255,0.35)";
-  ctx.font = `400 15px ${MONO_FONT}`;
-  ctx.fillText("SYS.MODULE // ONLINE", 40, 250);
+  // Items — bright cyan, large
+  ctx.fillStyle = "#7df9ff";
+  ctx.font = `600 26px ${MONO_FONT}`;
+  wrapText(ctx, skill.items.toUpperCase(), 36, 216, W - 80, 36);
 
   return toTexture(canvas);
 }

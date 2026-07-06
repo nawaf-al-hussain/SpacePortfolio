@@ -6,6 +6,7 @@ import * as THREE from "three";
 import {
   PROJECTS_PLANET,
   PROJECTS_RING_TILT,
+  projectsOrbitBlend,
   sectionAt,
   sectionProgress,
 } from "@/lib/journey";
@@ -32,15 +33,17 @@ const CARD_W = 4.8;
 const CARD_H = 3.0;
 const GLOW_W = 5.0;
 const GLOW_H = 3.2;
-const CHIP_W = 3.0;
+const CHIP_W = 3.3;
 
 const CAROUSEL_SPEED = 0.018; // rad/s
 const HOVER_SCALE = 1.14;
 const GLOW_BASE = 0.3;
 const GLOW_HOVER = 0.6;
 
-const LANE_RADIUS: [number, number] = [20, 24.5];
-const LANE_Y: [number, number] = [0.8, -0.8];
+// Three staggered lanes (radius + height) so adjacent cards never stack
+// in projection, even with 7 cards and the orbit-time scale boost.
+const LANE_RADIUS: [number, number, number] = [19, 23.5, 27.5];
+const LANE_Y: [number, number, number] = [-1.8, 0.5, 2.6];
 const STEP = (Math.PI * 2) / PROJECTS.length;
 
 const _parentQ = new THREE.Quaternion();
@@ -79,8 +82,9 @@ function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
   const alphaRef = useRef(0);
   const targets = useRef({ scale: 1, glow: GLOW_BASE });
   const glowCurrent = useRef(GLOW_BASE);
+  const hoverScale = useRef(1);
 
-  const lane = index % 2;
+  const lane = index % 3;
   const angle = index * STEP;
   const radius = LANE_RADIUS[lane];
   const yOff = LANE_Y[lane];
@@ -88,7 +92,7 @@ function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
   const { cardMat, glowMat, chipMat, chipAspect } = useMemo(() => {
     const cardTex = makeProjectCardTexture(project);
     const glowTex = makeGlowTexture(hexToRgba(project.colorA, 0.5));
-    const chip = makeTextTexture(project.title, { size: 90 });
+    const chip = makeTextTexture(project.title, { size: 120 });
 
     const cardMat = new THREE.MeshBasicMaterial({
       map: cardTex,
@@ -140,9 +144,17 @@ function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
     const alpha = revealAlpha();
     alphaRef.current = alpha;
 
-    // Hover animation (damped toward targets)
-    const s = THREE.MathUtils.damp(bb.scale.x, targets.current.scale, 6, delta);
-    bb.scale.setScalar(s);
+    // Hover animation (damped toward targets), enlarged while the camera
+    // laps the planet so titles stay readable from orbit distance.
+    const boost = 1 + 0.55 * projectsOrbitBlend(scrollState.progress);
+    const s = THREE.MathUtils.damp(
+      hoverScale.current,
+      targets.current.scale,
+      6,
+      delta
+    );
+    hoverScale.current = s;
+    bb.scale.setScalar(s * boost);
     glowCurrent.current = THREE.MathUtils.damp(
       glowCurrent.current,
       targets.current.glow,

@@ -163,14 +163,14 @@ function Card({ skill, position, side, plane, glowTex }: CardProps) {
             geometry={plane}
             material={glowMat}
             position={[0, 0, -0.06]}
-            scale={[3.55, 2.05, 1]}
+            scale={[5.0, 2.9, 1]}
             renderOrder={14}
           />
           {/* Main HUD panel */}
           <mesh
             geometry={plane}
             material={cardMat}
-            scale={[3.4, 1.9, 1]}
+            scale={[4.8, 2.7, 1]}
             renderOrder={15}
             onPointerOver={onOver}
             onPointerOut={onOut}
@@ -179,7 +179,7 @@ function Card({ skill, position, side, plane, glowTex }: CardProps) {
           <mesh
             geometry={plane}
             material={tickMat}
-            position={[-side * 0.35, -1.5, 0]}
+            position={[-side * 0.5, -2.1, 0]}
             rotation={[0, 0, -side * 0.42]}
             scale={[0.07, 1.35, 1]}
             renderOrder={14}

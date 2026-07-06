@@ -128,6 +128,45 @@ function progressToU(p: number, stops: number[]): number {
   return 1;
 }
 
+/* ------------------------------------------------------------------ */
+/* Projects orbit — a full lap around the planet so every project card */
+/* sweeps past the camera while the section scrolls.                   */
+/* ------------------------------------------------------------------ */
+
+const ORBIT_START = 0.63;
+const ORBIT_END = 0.79;
+const ORBIT_THETA0 = 1.14; // aligned with the keyframed entry position
+const ORBIT_CAM_RADIUS = 56; // far enough that planet + ring + cards all frame
+const ORBIT_CAM_HEIGHT = 11; // above the ring plane, in ring-local space
+const ORBIT_ROCKET_RADIUS = 27; // just outside the outer card lane
+const ORBIT_ROCKET_HEIGHT = 1.4; // in ring-plane local space
+const ORBIT_LEAD = 0.22; // rocket runs ahead of the camera (radians)
+
+const _orb = new THREE.Vector3();
+const _orbDir = new THREE.Vector3();
+
+/**
+ * 0 outside the projects-lap window, 1 fully inside, eased at both edges.
+ * Exported so the orbiting cards can enlarge themselves while the camera
+ * is lapping the planet.
+ */
+export function projectsOrbitBlend(p: number): number {
+  return (
+    THREE.MathUtils.smoothstep(p, ORBIT_START, ORBIT_START + 0.025) *
+    (1 - THREE.MathUtils.smoothstep(p, ORBIT_END - 0.035, ORBIT_END))
+  );
+}
+const orbitBlend = projectsOrbitBlend;
+
+function orbitTheta(p: number): number {
+  const t = THREE.MathUtils.clamp(
+    (p - ORBIT_START) / (ORBIT_END - ORBIT_START),
+    0,
+    1
+  );
+  return ORBIT_THETA0 + t * Math.PI * 2;
+}
+
 /** Sample the camera path. Writes into outPos/outTgt, returns fov. */
 export function sampleCamera(
   p: number,
@@ -136,6 +175,23 @@ export function sampleCamera(
 ): number {
   camPosCurve.curve.getPoint(progressToU(p, camPosCurve.stops), outPos);
   camTgtCurve.curve.getPoint(progressToU(p, camTgtCurve.stops), outTgt);
+
+  // Projects lap: camera rides the ring plane (elevated), coplanar with
+  // the rocket and cards — constant framing, no edge-on moment.
+  const ob = orbitBlend(p);
+  if (ob > 0) {
+    const th = orbitTheta(p);
+    _orb
+      .set(
+        Math.cos(th) * ORBIT_CAM_RADIUS,
+        ORBIT_CAM_HEIGHT,
+        Math.sin(th) * ORBIT_CAM_RADIUS
+      )
+      .applyEuler(PROJECTS_RING_TILT)
+      .add(PROJECTS_PLANET.position);
+    outPos.lerp(_orb, ob);
+    outTgt.lerp(PROJECTS_PLANET.position, ob);
+  }
 
   // fov: linear between keys
   const keys = CAMERA_KEYS;
@@ -180,6 +236,29 @@ export function sampleRocket(
   if (_dir.lengthSq() < 1e-6) _dir.set(0, 0, -1);
   _dir.normalize();
 
+  // Projects lap: circle the ring plane just outside the card lanes,
+  // running ahead of the camera so each card is flown past in turn.
+  const ob = orbitBlend(p);
+  if (ob > 0) {
+    const th = orbitTheta(p) + ORBIT_LEAD;
+    _orb
+      .set(
+        Math.cos(th) * ORBIT_ROCKET_RADIUS,
+        ORBIT_ROCKET_HEIGHT,
+        Math.sin(th) * ORBIT_ROCKET_RADIUS
+      )
+      .applyEuler(PROJECTS_RING_TILT)
+      .add(PROJECTS_PLANET.position);
+    outPos.lerp(_orb, ob);
+
+    // Travel direction follows the circle's tangent
+    _orbDir
+      .set(-Math.sin(th), 0, Math.cos(th))
+      .applyEuler(PROJECTS_RING_TILT)
+      .normalize();
+    _dir.lerp(_orbDir, ob).normalize();
+  }
+
   // Blend from "standing vertical" (+Y) to "facing travel direction"
   // across the launch window.
   const pitchT = THREE.MathUtils.smoothstep(p, 0.08, 0.17);
@@ -187,11 +266,14 @@ export function sampleRocket(
   _qPitch.identity();
   outQuat.copy(_qPitch).slerp(_qFace, pitchT);
 
-  // Bank into turns: roll around the travel axis by lateral curvature
+  // Bank into turns: roll around the travel axis by lateral curvature,
+  // plus a steady lean into the circle while lapping the planet.
   const uAhead = Math.min(u + 0.012, 1);
   rocketCurve.curve.getTangent(uAhead, _ahead);
   const lateral = _ahead.clone().sub(_dir).dot(new THREE.Vector3(1, 0, 0));
-  const bank = THREE.MathUtils.clamp(-lateral * 18, -0.7, 0.7) * pitchT;
+  const bank =
+    THREE.MathUtils.clamp(-lateral * 18, -0.7, 0.7) * pitchT * (1 - ob) -
+    0.38 * ob;
   const qBank = new THREE.Quaternion().setFromAxisAngle(UP, bank);
   outQuat.multiply(qBank);
 
