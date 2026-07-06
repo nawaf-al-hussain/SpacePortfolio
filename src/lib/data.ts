@@ -1,105 +1,212 @@
 export const PROFILE = {
   name: "Abhishek Badar",
   firstName: "Abhishek",
-  role: "Creative Developer",
-  tagline: "I build immersive experiences for the web.",
-  bio: "I'm a creative developer who turns ambitious ideas into fast, polished products. From real-time 3D on the web to full-stack applications, I obsess over the details — motion, performance, and the small interactions that make software feel alive.",
-  bio2: "Currently crafting interfaces and engines for the next generation of the web. Available for select freelance missions.",
-  email: "abhishek.badar@parityfox.com",
-  location: "Earth · Remote",
-  socials: {
-    github: "https://github.com/abhishekbadar",
-    linkedin: "https://linkedin.com/in/abhishekbadar",
-    twitter: "https://x.com/abhishekbadar",
-  },
-  stats: [
-    { value: "5+", label: "Years in orbit" },
-    { value: "40+", label: "Missions shipped" },
-    { value: "20+", label: "Happy crews" },
+  role: "Software Development Engineer",
+  status: "Software engineer · currently shipping @ Xeo",
+  taglines: [
+    "ship AI into real products.",
+    "build end-to-end systems.",
+    "automate what slows teams down.",
+    "fix bottlenecks and ship faster.",
+    "architect it, ship it, make it fast.",
   ],
+  bio: "I design and ship products end to end across web, mobile, backends, and the automation between them. At Xeo, I own the full stack: Laravel, Next.js, Flutter from zero. Plus AI in production: RAG with Pinecone, OCR workflows, and automation that cuts real operational drag.",
+  about: {
+    lead: "I work across the entire stack to reduce dependencies and move faster. I design APIs, build frontends, and develop mobile apps so products can be shipped without bottlenecks.",
+    p2: "At Xeo, I'm rebuilding a production Laravel system into a modern architecture while delivering a Flutter app from scratch — handling legacy code, performance constraints, and scalability challenges in real-world systems.",
+    p3: "I focus on building simple, fast, and maintainable systems — designed for actual usage, not just clean implementations.",
+    credentials: [
+      "B.Tech, IT — RCOEM (2020–2024)",
+      "AI Minor — IIT Ropar (2024–2025)",
+      "Certified: Azure · AI · Flutter",
+      "Currently @ Xeo, Pune",
+    ],
+  },
+  email: "ab15.badar@gmail.com",
+  location: "Pune, India",
+  resume: "/Resume_AbhishekBadar.pdf",
+  siteUrl: "https://abhishekbadar.dev/",
+  socials: {
+    github: "https://github.com/AbhishekBadar",
+    linkedin: "https://www.linkedin.com/in/abhishekbadar",
+    medium: "https://medium.com/@abhishekbadar",
+  },
 };
 
-export type Skill = {
-  name: string;
-  pct: number;
+export type Job = {
+  company: string;
+  title: string;
+  range: string;
+  location: string;
   blurb: string;
+  points: string[];
+};
+
+export const EXPERIENCE: Job[] = [
+  {
+    company: "Xeo Information Systems",
+    title: "Software Development Engineer I",
+    range: "Mar 2025 — Present",
+    location: "Pune · Hybrid",
+    blurb:
+      "Leading a frontend replatform, building a Flutter app end-to-end, and designing the Laravel backend that serves both.",
+    points: [
+      "Migrating web frontend from Laravel Blade → Next.js (App Router) — scalable routing, reusable component patterns",
+      "Built a reusable React data table abstraction replacing legacy Yajra DataTables — standardized pagination, sorting, server-side data",
+      "Shipped complex form workflows using React Hook Form + Zod for type-safe validation",
+      "Designed Laravel backend architecture serving web + mobile via RESTful APIs",
+      "Built a Flutter app end-to-end for students & parents — fees, events, newsletters, bookings, push notifications. 500+ users",
+      "HMAC-based request auth for mobile API security",
+      "Payment gateway integration + admin dashboard for tracking, dues reports, receipts",
+      "FCM push notifications with deep-link routing",
+    ],
+  },
+  {
+    company: "Refyne",
+    title: "Associate Software Engineer",
+    range: "Aug 2024 — Feb 2025",
+    location: "Bangalore · Full-time",
+    blurb:
+      "Built the internal CRM platform used by 150+ across sales, risk, and growth. Automated the boring parts.",
+    points: [
+      "Built an internal CRM on Firebase Auth + serverless architecture — 150+ active users across sales, risk, and growth",
+      "Firestore data models for real-time deal tracking, activity logs, and threaded communication",
+      "Two-way comment system synced with ClickUp and Postgres — bidirectional sync between CRM and task management",
+      "Dashboards + search filters that cut data retrieval time by 60%; custom export-to-CSV for on-demand reports",
+      "Migrated 50,000+ records from HubSpot → Firebase with validation and consistency checks (+30% query efficiency)",
+      "Automated cross-platform workflows (Slack, Gmail, ClickUp) via N8N — reduced ops overhead ~40%",
+      "Automated user onboarding via Slack APIs + Firebase Admin SDK — cut onboarding from 30 min → under 5 min",
+      "HR chatbot using Pinecone vector DB + LLMs, integrated with Slack (+40% internal support efficiency)",
+      "Resume ingestion + scoring pipeline: Google Drive, OCR, semantic matching against job descriptions",
+      "Integrated Sentry for real-time error monitoring — debugging time down 50%",
+    ],
+  },
+];
+
+export type Skill = {
+  /** HUD module number, "01".."06" */
+  num: string;
+  name: string;
+  items: string;
 };
 
 export const SKILLS: Skill[] = [
-  { name: "React / Next.js", pct: 95, blurb: "App router, RSC, edge" },
-  { name: "Three.js / WebGL", pct: 88, blurb: "R3F, GLSL, shaders" },
-  { name: "TypeScript", pct: 93, blurb: "Strict, end to end" },
-  { name: "Node.js", pct: 90, blurb: "APIs, realtime, infra" },
-  { name: "Motion & 3D Design", pct: 86, blurb: "GSAP, Blender, rigs" },
-  { name: "UI Engineering", pct: 92, blurb: "Design systems, a11y" },
+  { num: "01", name: "Frontend", items: "React · Next.js · Tailwind CSS" },
+  { num: "02", name: "Backend", items: "Laravel · REST APIs · MySQL" },
+  { num: "03", name: "Mobile", items: "Flutter · Dart" },
+  { num: "04", name: "AI & Automation", items: "RAG · Pinecone · OCR · N8N" },
+  { num: "05", name: "Tools & Infra", items: "Firebase · Git · Deployments" },
+  { num: "06", name: "Languages", items: "TypeScript · PHP · Python" },
 ];
 
 export type Project = {
   id: string;
   title: string;
+  meta: string;
   tagline: string;
   description: string;
   tags: string[];
   /** Gradient endpoints used to generate the orbiting card artwork. */
   colorA: string;
   colorB: string;
-  link: string;
+  /** External link (GitHub / store). Null = no public link. */
+  link: string | null;
+  linkLabel?: string;
+  featured?: boolean;
 };
 
 export const PROJECTS: Project[] = [
   {
-    id: "nebula",
-    title: "Nebula Analytics",
-    tagline: "Realtime dashboards at warp speed",
+    id: "dospaces",
+    title: "DoSpaces Plugin",
+    meta: "2025 · Open source",
+    tagline: "osTicket attachments, offloaded to the cloud",
     description:
-      "A realtime analytics platform streaming millions of events per minute into GPU-accelerated dashboards. Built with Next.js, ClickHouse and WebGL scatter fields rendering 1M+ points at 60fps.",
-    tags: ["Next.js", "WebGL", "ClickHouse"],
-    colorA: "#7c3aed",
+      "osTicket plugin that offloads ticket attachments to DigitalOcean Spaces with secure public-link generation — cut agent response time by 30%.",
+    tags: ["PHP", "DigitalOcean Spaces", "REST"],
+    colorA: "#0069ff",
     colorB: "#4cc9f0",
-    link: "#",
+    link: null,
+    featured: true,
   },
   {
-    id: "orbit",
-    title: "Orbit Commerce",
-    tagline: "Headless storefront with 3D product try-on",
+    id: "autoposter",
+    title: "twitter-autoposter",
+    meta: "2026 · AI · Automation",
+    tagline: "A content pipeline that runs itself",
     description:
-      "Headless e-commerce storefront where every product spins in photoreal 3D. Configurator with live materials, AR export, and a checkout that converts 23% better than the legacy store.",
-    tags: ["React Three Fiber", "Shopify", "AR"],
-    colorA: "#0ea5e9",
+      "End-to-end content pipeline: researches trending topics, generates posts with DeepSeek, queues them into Google Sheets, and routes through a Telegram approval bot. Runs daily on GitHub Actions.",
+    tags: ["Python", "DeepSeek", "Telegram Bot", "Google Sheets", "GH Actions"],
+    colorA: "#7c3aed",
+    colorB: "#1da1f2",
+    link: "https://github.com/AbhishekBadar/twitter-autoposter",
+    linkLabel: "View on GitHub",
+  },
+  {
+    id: "claude-tracker",
+    title: "Claude-Tracker",
+    meta: "2026 · macOS · Swift",
+    tagline: "Never blow a quota mid-flow",
+    description:
+      "Native menu-bar app that tracks Claude Code usage across weekly and 5-hour rolling windows so you never blow a quota mid-flow.",
+    tags: ["Swift", "SwiftUI", "macOS"],
+    colorA: "#d97757",
     colorB: "#f0abfc",
-    link: "#",
+    link: "https://github.com/AbhishekBadar/Claude-Tracker",
+    linkLabel: "View on GitHub",
   },
   {
-    id: "pulse",
-    title: "Pulse AI",
-    tagline: "Conversational copilot for support teams",
+    id: "save-image-as",
+    title: "Save Image As",
+    meta: "2026 · Chrome extension · Live",
+    tagline: "2.46K+ installs, 1K+ active users",
     description:
-      "An AI copilot that drafts replies, summarizes threads and surfaces knowledge in-flight. Streaming UI, tool-calling agents, and a feedback loop that lifted resolution speed by 40%.",
-    tags: ["AI / LLM", "Streaming UX", "Node.js"],
-    colorA: "#f472b6",
-    colorB: "#7c3aed",
-    link: "#",
+      "Chrome extension with intelligent file-naming suggestions and streamlined download management. 2.46K+ installs, 1K+ active users, 4.36K+ store page views.",
+    tags: ["JavaScript", "Chrome APIs", "Manifest v3"],
+    colorA: "#34a853",
+    colorB: "#4285f4",
+    link: "https://chromewebstore.google.com/detail/save-image-as/bcngajhkkkhfalgljjjjbjacjcdlophj",
+    linkLabel: "Chrome Web Store",
   },
   {
-    id: "terra",
-    title: "Terra Studio",
-    tagline: "Procedural world-builder in the browser",
+    id: "puzzleit",
+    title: "PuzzleIT",
+    meta: "2024 · Side project",
+    tagline: "Escape rooms in the browser",
     description:
-      "A browser-based terrain and world editor: procedural noise stacks, erosion simulation on the GPU, and one-click export to glTF. Used by indie studios to prototype game worlds.",
-    tags: ["GLSL", "Compute", "glTF"],
+      "Web-based escape-room puzzle game with real-time collaboration. Engaged 200+ participants through challenges that tested lateral thinking.",
+    tags: ["React", "Redux", "MongoDB", "Node"],
     colorA: "#22d3ee",
     colorB: "#a3e635",
-    link: "#",
+    link: "https://github.com/AbhishekBadar/puzzleIT",
+    linkLabel: "View on GitHub",
   },
   {
-    id: "comet",
-    title: "Comet Mail",
-    tagline: "Email client that feels like a game",
+    id: "traffic-analyzer",
+    title: "Traffic Density Analyzer",
+    meta: "2023 · Research",
+    tagline: "YOLO-powered signal timing",
     description:
-      "An opinionated email client with command-palette triage, physics-based gestures and offline sync. Inbox zero, but make it fun — 4.9★ from 2k+ early users.",
-    tags: ["Electron", "Local-first", "Motion"],
-    colorA: "#fbbf24",
-    colorB: "#f472b6",
-    link: "#",
+      "Real-time traffic management using YOLO for vehicle detection and dynamic signal timing. Reduced simulated congestion by 25%.",
+    tags: ["Python", "YOLO", "OpenCV"],
+    colorA: "#ef4444",
+    colorB: "#fbbf24",
+    link: "https://github.com/AbhishekBadar/Traffic-Density-Analyzer",
+    linkLabel: "View on GitHub",
+  },
+  {
+    id: "whilegptthinks",
+    title: "WhileGPTThinks",
+    meta: "2025 · Chrome extension",
+    tagline: "A silly but useful toy",
+    description:
+      "Redirects you to YouTube Shorts while ChatGPT generates a reply, then brings you back when the answer is ready. A silly but useful toy.",
+    tags: ["JavaScript", "Chrome APIs"],
+    colorA: "#ff4444",
+    colorB: "#f0abfc",
+    link: "https://github.com/AbhishekBadar/whilegptthinks",
+    linkLabel: "View on GitHub",
   },
 ];
+
+export const ARCHIVE_URL = "https://github.com/AbhishekBadar";

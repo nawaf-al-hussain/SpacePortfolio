@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { PROFILE, PROJECTS } from "@/lib/data";
+import { ARCHIVE_URL, EXPERIENCE, PROFILE, PROJECTS } from "@/lib/data";
 import { useScrollRaf } from "@/lib/scroll";
 import { useUIStore } from "@/lib/store";
 
@@ -65,14 +65,19 @@ const inputClass =
 const labelClass =
   "mb-1.5 block font-mono text-[10px] uppercase tracking-[0.22em] text-white/50";
 
+const CONTACT_COPY =
+  "I'm currently open to new opportunities — full-time, contract, or just a good chat. Whether you have a project idea, a question, or you just want to say hi, my inbox is the best way to reach me.";
+
 /* ------------------------------------------------------------------ */
 
 export default function SectionOverlays() {
   const aboutRef = useRef<HTMLDivElement>(null);
+  const experienceRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
   const lastAbout = useRef(-1);
+  const lastExperience = useRef(-1);
   const lastSkills = useRef(-1);
   const lastProjects = useRef(-1);
   const lastContact = useRef(-1);
@@ -81,28 +86,38 @@ export default function SectionOverlays() {
     applyPanel(
       aboutRef.current,
       lastAbout,
-      envelope(p, 0.235, 0.265, 0.365, 0.4),
+      envelope(p, 0.205, 0.235, 0.315, 0.34),
       (a) => `translateX(${(-40 * (1 - a)).toFixed(2)}px)`
+    );
+    applyPanel(
+      experienceRef.current,
+      lastExperience,
+      envelope(p, 0.355, 0.39, 0.475, 0.5),
+      (a) => `translateX(${(40 * (1 - a)).toFixed(2)}px)`
     );
     applyPanel(
       skillsRef.current,
       lastSkills,
-      envelope(p, 0.41, 0.44, 0.53, 0.56),
+      envelope(p, 0.51, 0.54, 0.595, 0.62),
       (a) => `translateY(${(-18 * (1 - a)).toFixed(2)}px)`
     );
     applyPanel(
       projectsRef.current,
       lastProjects,
-      envelope(p, 0.575, 0.61, 0.75, 0.78),
+      envelope(p, 0.635, 0.665, 0.775, 0.8),
       (a) => `translateX(${(-28 * (1 - a)).toFixed(2)}px)`
     );
     applyPanel(
       contactRef.current,
       lastContact,
-      smoothstep(0.8, 0.855, p),
+      smoothstep(0.82, 0.875, p),
       (a) => `translateX(${(40 * (1 - a)).toFixed(2)}px)`
     );
   });
+
+  /* ---------------- experience tabs ---------------- */
+  const [activeJob, setActiveJob] = useState(0);
+  const job = EXPERIENCE[activeJob];
 
   /* ---------------- projects hover chip ---------------- */
   const hoveredId = useUIStore((s) => s.hoveredProject);
@@ -137,36 +152,96 @@ export default function SectionOverlays() {
           style={HIDDEN}
           className="glass hud-corners ml-8 w-[440px] max-w-[calc(100vw-4rem)] rounded-2xl p-8 lg:ml-16"
         >
-          <Kicker>01 // About me</Kicker>
+          <Kicker>01 // About</Kicker>
           <h2 className="mt-3 font-display text-[40px] font-bold leading-[1.05] text-star">
-            Mission <span className="text-cyan">commander</span>
+            Full stack, fewer <span className="text-cyan">bottlenecks</span>
           </h2>
           <p className="mt-5 text-[15px] leading-relaxed text-white/70">
-            {PROFILE.bio}
+            {PROFILE.about.lead}
           </p>
           <p className="mt-4 text-sm leading-relaxed text-white/50">
-            {PROFILE.bio2}
+            {PROFILE.about.p2}
+          </p>
+          <p className="mt-4 text-sm leading-relaxed text-white/50">
+            {PROFILE.about.p3}
           </p>
           <div className="hud-line mt-6" />
-          <div className="mt-5 grid grid-cols-3 divide-x divide-white/10">
-            {PROFILE.stats.map((stat, i) => (
-              <div key={stat.label} className={i === 0 ? "pr-4" : "px-4"}>
-                <div className="font-display text-3xl font-bold text-cyan">
-                  {stat.value}
-                </div>
-                <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                  {stat.label}
-                </div>
-              </div>
+          <ul className="mt-5 space-y-1.5">
+            {PROFILE.about.credentials.map((cred) => (
+              <li
+                key={cred}
+                className="font-mono text-[11px] uppercase tracking-wide text-star/70"
+              >
+                <span className="text-cyan">▹</span> {cred}
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
 
-      {/* ============ 02 // SKILLS ============ */}
+      {/* ============ 02 // EXPERIENCE ============ */}
+      <div className="absolute inset-y-0 right-0 flex items-center">
+        <div
+          ref={experienceRef}
+          style={HIDDEN}
+          className="glass hud-corners pointer-events-auto mr-8 w-[520px] max-w-[calc(100vw-4rem)] rounded-2xl p-7 lg:mr-24"
+        >
+          <Kicker>02 // Where I&apos;ve worked</Kicker>
+
+          <div className="mt-4 flex gap-3">
+            {EXPERIENCE.map((j, i) => (
+              <button
+                key={j.company}
+                type="button"
+                data-cursor="hover"
+                onClick={() => setActiveJob(i)}
+                className={`rounded-full border px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] transition-colors ${
+                  i === activeJob
+                    ? "border-cyan bg-cyan/10 text-cyan"
+                    : "border-white/15 text-star/60 hover:text-star"
+                }`}
+              >
+                {j.company.split(" ")[0]}
+              </button>
+            ))}
+          </div>
+
+          <h3 className="mt-5 font-display text-xl font-bold text-white">
+            {job.title} <span className="text-cyan">@ {job.company}</span>
+          </h3>
+          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-star/50">
+            {job.range} · {job.location}
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-white/60">
+            {job.blurb}
+          </p>
+
+          <ul
+            key={activeJob}
+            onWheel={(e) => e.stopPropagation()}
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(76,201,240,0.35) transparent",
+            }}
+            className="mt-4 max-h-[280px] space-y-2.5 overflow-y-auto pr-2"
+          >
+            {job.points.map((point) => (
+              <li
+                key={point}
+                className="flex gap-2.5 text-[13px] leading-relaxed text-white/60"
+              >
+                <span className="shrink-0 text-cyan">▹</span>
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* ============ SKILLS ============ */}
       <div className="absolute inset-x-0 top-28 flex justify-center">
         <div ref={skillsRef} style={HIDDEN} className="px-6 text-center">
-          <Kicker>02 // Systems check</Kicker>
+          <Kicker>{"// Systems check"}</Kicker>
           <h2
             className="mt-2 font-display text-[28px] font-bold text-star"
             style={{
@@ -185,7 +260,7 @@ export default function SectionOverlays() {
       {/* ============ 03 // PROJECTS ============ */}
       <div className="absolute left-8 top-28 lg:left-16">
         <div ref={projectsRef} style={HIDDEN}>
-          <Kicker>03 // Selected missions</Kicker>
+          <Kicker>03 // Some things I&apos;ve built</Kicker>
           <h2
             className="mt-2 font-display text-[34px] font-bold text-star"
             style={{ textShadow: "0 0 28px rgba(124,58,237,0.4)" }}
@@ -195,6 +270,15 @@ export default function SectionOverlays() {
           <p className="mt-3 animate-blink font-mono text-xs tracking-[0.2em] text-hud">
             ▸ CLICK A CARD TO INSPECT
           </p>
+          <a
+            href={ARCHIVE_URL}
+            target="_blank"
+            rel="noreferrer"
+            data-cursor="hover"
+            className="pointer-events-auto mt-3 inline-block font-mono text-xs text-star/60 underline-offset-4 transition-colors hover:text-cyan hover:underline"
+          >
+            Explore the archive ↗
+          </a>
         </div>
       </div>
 
@@ -226,15 +310,24 @@ export default function SectionOverlays() {
           style={HIDDEN}
           className="glass hud-corners pointer-events-auto mr-8 w-[460px] max-w-[calc(100vw-4rem)] rounded-2xl p-8 lg:mr-24"
         >
-          <Kicker>04 // Transmission</Kicker>
-          <h2 className="mt-2 font-display text-[38px] font-bold leading-[1.05] text-star">
-            Start a <span className="text-cyan">mission</span>
+          <Kicker>04 // What&apos;s next</Kicker>
+          <h2 className="mt-2 font-display text-[34px] font-bold leading-[1.08] text-star">
+            Let&apos;s make something{" "}
+            <span className="text-cyan">together</span>.
           </h2>
-          <p className="mt-3 text-sm text-white/60">
-            Have an ambitious idea? Open a channel — I&apos;m listening.
+          <p className="mt-3 text-sm leading-relaxed text-white/60">
+            {CONTACT_COPY}
           </p>
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          <a
+            href={`mailto:${PROFILE.email}`}
+            data-cursor="hover"
+            className="mt-4 inline-block font-display text-lg font-semibold text-cyan transition-colors hover:text-cyan-bright"
+          >
+            {PROFILE.email} →
+          </a>
+
+          <form onSubmit={onSubmit} className="mt-5 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="tx-name" className={labelClass}>
@@ -327,15 +420,15 @@ export default function SectionOverlays() {
                 </svg>
               </a>
               <a
-                href={PROFILE.socials.twitter}
+                href={PROFILE.socials.medium}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="X"
+                aria-label="Medium"
                 data-cursor="hover"
                 className="text-white/50 transition-colors hover:text-cyan"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                  <path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.67l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.12l11.96 15.64Z" />
+                  <path d="M13.54 12a6.8 6.8 0 1 1-13.6 0 6.8 6.8 0 0 1 13.6 0Zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42ZM24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75S24 8.83 24 12Z" />
                 </svg>
               </a>
             </div>

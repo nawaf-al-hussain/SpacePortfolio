@@ -40,4 +40,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - **Planet textures** — [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0)
 - **HDRI lighting** — "Dikhololo Night" from [Poly Haven](https://polyhaven.com) (CC0)
 - **3D models** (astronaut, spaceship) — [Quaternius Ultimate Space Kit](https://quaternius.com) (CC0)
+- **ISS model** — [NASA 3D Resources](https://github.com/nasa/NASA-3D-Resources) (public domain, courtesy NASA)
 - Everything else (rocket, nebula, rings, HUD artwork) is generated procedurally in code.

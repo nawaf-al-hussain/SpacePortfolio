@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from "motion/react";
 import { useRef } from "react";
+import { PROFILE } from "@/lib/data";
 import { useScrollRaf } from "@/lib/scroll";
 
 function smoothstep(p: number, a: number, b: number): number {
@@ -66,36 +67,63 @@ export default function HeroOverlay() {
         animate="show"
         className="relative h-full w-full"
       >
-        {/* Identity tag — upper-left of the (3D) title */}
-        <motion.div
-          variants={item}
-          className="absolute left-1/2 top-[26%] -translate-x-1/2 md:left-[50%] md:-translate-x-[72%]"
-        >
-          <div className="hud-corners px-5 py-2">
-            <p className="whitespace-nowrap font-mono text-xs uppercase tracking-hud text-hud">
-              ABHISHEK BADAR {"//"} CREATIVE DEVELOPER
-            </p>
-          </div>
-        </motion.div>
+        {/* Identity — centered band between the nav and the planets */}
+        <div className="absolute inset-x-8 top-[10%] flex flex-col items-center gap-6 text-center">
+          {/* Status chip flanked by HUD lines */}
+          <motion.div variants={item} className="flex items-center gap-4">
+            <span aria-hidden className="hud-line w-14 sm:w-28" />
+            <span className="glass flex items-center gap-2.5 rounded-full px-5 py-2">
+              <span
+                aria-hidden
+                className="h-1.5 w-1.5 animate-blink rounded-full bg-cyan shadow-[0_0_10px_rgba(76,201,240,0.9)]"
+              />
+              <span className="whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.28em] text-hud lg:text-[11px]">
+                {PROFILE.status}
+              </span>
+            </span>
+            <span aria-hidden className="hud-line w-14 sm:w-28" />
+          </motion.div>
 
-        {/* Left telemetry column */}
-        <motion.div
-          variants={item}
-          className="absolute left-6 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-4 opacity-40 lg:flex lg:left-10"
-        >
-          <TelemetrySquare />
-          <VLine h={64} />
-          <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-hud [writing-mode:vertical-rl]">
-            SYS.OK
-          </p>
-          <VLine h={40} />
-          <TelemetrySquare />
-          <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-hud [writing-mode:vertical-rl]">
-            NAV {"//"} AUTO
-          </p>
-          <VLine h={64} />
-          <TelemetrySquare />
-        </motion.div>
+          {/* Name — gradient fill over a soft glow layer */}
+          <motion.h1
+            variants={item}
+            className="relative font-display text-5xl font-bold uppercase leading-none tracking-[0.05em] lg:text-7xl"
+          >
+            <span
+              aria-hidden
+              className="absolute inset-0 select-none bg-gradient-to-b from-white to-[#7df9ff] bg-clip-text text-transparent opacity-50 blur-[16px]"
+            >
+              {PROFILE.name}
+            </span>
+            <span className="relative bg-gradient-to-b from-white from-40% via-[#e8f4ff] to-[#8fd8f8] bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(76,201,240,0.35)]">
+              {PROFILE.name}
+            </span>
+          </motion.h1>
+
+          {/* Flourish */}
+          <motion.div variants={item} className="flex items-center gap-3 opacity-80">
+            <span
+              aria-hidden
+              className="h-px w-20"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, rgba(154,220,255,0.7))",
+              }}
+            />
+            <span
+              aria-hidden
+              className="h-1.5 w-1.5 rotate-45 border border-cyan/80 bg-cyan/20 shadow-[0_0_8px_rgba(76,201,240,0.6)]"
+            />
+            <span
+              aria-hidden
+              className="h-px w-20"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(154,220,255,0.7), transparent)",
+              }}
+            />
+          </motion.div>
+        </div>
 
         {/* Right telemetry column */}
         <motion.div

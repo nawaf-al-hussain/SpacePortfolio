@@ -125,11 +125,7 @@ export function makeProjectCardTexture(project: Project): THREE.CanvasTexture {
   ctx.fillStyle = "rgba(255,255,255,0.4)";
   ctx.font = `500 13px ${MONO_FONT}`;
   ctx.textAlign = "center";
-  ctx.fillText(
-    `${project.id}.parityfox.com`.toLowerCase(),
-    W / 2,
-    27
-  );
+  ctx.fillText("github.com/AbhishekBadar", W / 2, 27);
 
   // Hero gradient band
   const grad = ctx.createLinearGradient(0, 44, W, 220);
@@ -233,7 +229,7 @@ export function makeSkillCardTexture(skill: Skill): THREE.CanvasTexture {
   ctx.lineTo(40, 6);
   ctx.stroke();
 
-  // Progress ring
+  // Module ring with the HUD number inside
   const cx = W - 96;
   const cy = H / 2;
   const R = 62;
@@ -250,20 +246,14 @@ export function makeSkillCardTexture(skill: Skill): THREE.CanvasTexture {
   ctx.shadowColor = "rgba(76,201,240,0.8)";
   ctx.shadowBlur = 14;
   ctx.beginPath();
-  ctx.arc(
-    cx,
-    cy,
-    R,
-    -Math.PI / 2,
-    -Math.PI / 2 + (Math.PI * 2 * skill.pct) / 100
-  );
+  ctx.arc(cx, cy, R, -Math.PI / 2, Math.PI * 1.32);
   ctx.stroke();
   ctx.shadowBlur = 0;
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 34px ${DISPLAY_FONT}`;
+  ctx.font = `700 38px ${DISPLAY_FONT}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(`${skill.pct}%`, cx, cy + 2);
+  ctx.fillText(skill.num, cx, cy + 2);
 
   // Text
   ctx.textAlign = "left";
@@ -272,13 +262,13 @@ export function makeSkillCardTexture(skill: Skill): THREE.CanvasTexture {
   ctx.font = `700 36px ${DISPLAY_FONT}`;
   wrapText(ctx, skill.name, 40, 110, W - 240, 44);
   ctx.fillStyle = "rgba(154,220,255,0.85)";
-  ctx.font = `500 20px ${MONO_FONT}`;
-  ctx.fillText(skill.blurb.toUpperCase(), 40, 206);
+  ctx.font = `500 19px ${MONO_FONT}`;
+  wrapText(ctx, skill.items.toUpperCase(), 40, 196, W - 230, 28);
 
   // Tiny telemetry row
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.font = `400 15px ${MONO_FONT}`;
-  ctx.fillText("SYS.MODULE // CALIBRATED", 40, 244);
+  ctx.fillText("SYS.MODULE // ONLINE", 40, 250);
 
   return toTexture(canvas);
 }

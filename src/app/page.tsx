@@ -10,6 +10,7 @@ import HeroOverlay from "@/components/dom/HeroOverlay";
 import SectionOverlays from "@/components/dom/SectionOverlays";
 import ProjectModal from "@/components/dom/ProjectModal";
 import HUDRail from "@/components/dom/HUDRail";
+import SocialRail from "@/components/dom/SocialRail";
 import CustomCursor from "@/components/dom/CustomCursor";
 
 const Experience = dynamic(() => import("@/components/canvas/Experience"), {
@@ -42,6 +43,7 @@ export default function Home() {
       <HeroOverlay />
       <SectionOverlays />
       <HUDRail />
+      <SocialRail />
       <ProjectModal />
       <CustomCursor />
       <Loader />

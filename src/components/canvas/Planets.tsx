@@ -547,7 +547,7 @@ function ProjectsPlanet() {
     surfaceMat.uniforms.uTime.value = t;
     ringMat.uniforms.uTime.value = t;
     // Ring + atmosphere glow stay quiet until the voyage nears the reveal
-    const reveal = smoothstep(scrollState.progress, 0.44, 0.58);
+    const reveal = smoothstep(scrollState.progress, 0.5, 0.64);
     ringMat.uniforms.uReveal.value = reveal;
     atmoMat.uniforms.uIntensity.value = 1.2 * (0.22 + 0.78 * reveal);
   });
@@ -651,7 +651,7 @@ function ContactSun() {
     sunMat.uniforms.uTime.value = state.clock.elapsedTime;
     connector.material.opacity = fadeContact(scrollState.progress) * 0.7;
     // Halo + light swell only as the voyage approaches the finale
-    const rv = 0.12 + 0.88 * smoothstep(scrollState.progress, 0.55, 0.74);
+    const rv = 0.12 + 0.88 * smoothstep(scrollState.progress, 0.62, 0.78);
     sunMat.uniforms.uReveal.value = rv;
     glowMats[0].opacity = 0.5 * rv;
     glowMats[1].opacity = 0.3 * rv;

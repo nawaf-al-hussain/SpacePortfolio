@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Static assets (incl. vendored draco decoder)
+    "public/**",
   ]),
   {
     // react-three-fiber's useFrame idiom mutates three.js objects

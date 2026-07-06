@@ -23,12 +23,12 @@ import { makeGlowTexture, makeSkillCardTexture } from "@/lib/textures";
 type Slot = { x: number; y: number; z: number; side: 1 | -1 };
 
 const LAYOUT: Slot[] = [
-  { x: -1.6, y: 0.9, z: -101, side: -1 },
-  { x: 11.3, y: -3.7, z: -109, side: 1 },
-  { x: 0.5, y: -2.4, z: -117, side: -1 },
-  { x: 13.8, y: 1.3, z: -125, side: 1 },
-  { x: 3.6, y: -4.8, z: -133, side: -1 },
-  { x: 17.4, y: -0.6, z: -141, side: 1 },
+  { x: -1.6, y: 0.9, z: -109, side: -1 },
+  { x: 11.3, y: -3.7, z: -117, side: 1 },
+  { x: 0.5, y: -2.4, z: -125, side: -1 },
+  { x: 13.8, y: 1.3, z: -133, side: 1 },
+  { x: 3.6, y: -4.8, z: -141, side: -1 },
+  { x: 17.4, y: -0.6, z: -149, side: 1 },
 ];
 
 /* Scratch — zero per-frame allocations */

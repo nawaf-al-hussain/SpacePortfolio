@@ -7,15 +7,16 @@ import * as THREE from "three";
  * drives the camera and rocket along keyframed paths through the scene.
  */
 
-export const TOTAL_PAGES = 9; // page height = TOTAL_PAGES * 100vh
+export const TOTAL_PAGES = 10; // page height = TOTAL_PAGES * 100vh
 
 export const SECTIONS = [
-  { id: "hero", label: "Home", range: [0.0, 0.12] },
-  { id: "launch", label: "Launch", range: [0.12, 0.22] },
-  { id: "about", label: "About", range: [0.22, 0.4] },
-  { id: "skills", label: "Skills", range: [0.4, 0.56] },
-  { id: "projects", label: "Projects", range: [0.56, 0.78] },
-  { id: "contact", label: "Contact", range: [0.78, 1.0] },
+  { id: "hero", label: "Home", range: [0.0, 0.1] },
+  { id: "launch", label: "Launch", range: [0.1, 0.19] },
+  { id: "about", label: "About", range: [0.19, 0.34] },
+  { id: "experience", label: "Work", range: [0.34, 0.5] },
+  { id: "skills", label: "Skills", range: [0.5, 0.62] },
+  { id: "projects", label: "Projects", range: [0.62, 0.8] },
+  { id: "contact", label: "Contact", range: [0.8, 1.0] },
 ] as const;
 
 export type SectionId = (typeof SECTIONS)[number]["id"];
@@ -26,7 +27,12 @@ export const ABOUT_PLANET = {
   radius: 11,
 };
 
-export const SKILLS_CENTER = new THREE.Vector3(9, -2, -120);
+/** The work-log station drifts here — visited between Earth and the corridor. */
+export const STATION = {
+  position: new THREE.Vector3(-14, 2, -96),
+};
+
+export const SKILLS_CENTER = new THREE.Vector3(9, -2, -128);
 
 export const PROJECTS_PLANET = {
   position: new THREE.Vector3(-4, -3, -186),
@@ -56,16 +62,18 @@ type CamKey = {
 
 const CAMERA_KEYS: CamKey[] = [
   { p: 0.0, pos: [0, 0.4, 10], tgt: [0, 0.7, 0], fov: 45 },
-  { p: 0.08, pos: [0, 0.7, 9.2], tgt: [0, 0.7, 0], fov: 46 },
-  { p: 0.14, pos: [0, 2.4, 7.8], tgt: [0, 0.6, -5], fov: 50 },
-  { p: 0.22, pos: [0, 1.6, 1.5], tgt: [0, 0.2, -16], fov: 55 },
-  { p: 0.3, pos: [-5, 2.5, -36], tgt: [-17, 4, -62], fov: 55 },
-  { p: 0.38, pos: [-3, 2.5, -64], tgt: [-22, 5, -82], fov: 52 },
-  { p: 0.46, pos: [3, -1, -96], tgt: [11, -2, -121], fov: 52 },
-  { p: 0.54, pos: [8.5, -2, -127], tgt: [7, -1.5, -148], fov: 52 },
-  { p: 0.62, pos: [16, 9, -138], tgt: [-4, -3, -186], fov: 50 },
-  { p: 0.71, pos: [32, 8, -157], tgt: [-4, -2, -186], fov: 48 },
-  { p: 0.78, pos: [16, 3, -197], tgt: [14, 5, -231], fov: 50 },
+  { p: 0.07, pos: [0, 0.7, 9.2], tgt: [0, 0.7, 0], fov: 46 },
+  { p: 0.12, pos: [0, 2.4, 7.8], tgt: [0, 0.6, -5], fov: 50 },
+  { p: 0.19, pos: [0, 1.6, 1.5], tgt: [0, 0.2, -16], fov: 55 },
+  { p: 0.26, pos: [-5, 2.5, -36], tgt: [-17, 4, -62], fov: 55 },
+  { p: 0.33, pos: [-3, 2.5, -64], tgt: [-22, 5, -82], fov: 52 },
+  { p: 0.4, pos: [2, 1.5, -78], tgt: [-13, 2, -95], fov: 52 },
+  { p: 0.47, pos: [4, 0.5, -92], tgt: [-8, 1.5, -108], fov: 52 },
+  { p: 0.53, pos: [3, -1, -104], tgt: [11, -2, -129], fov: 52 },
+  { p: 0.6, pos: [8.5, -2, -135], tgt: [7, -1.5, -156], fov: 52 },
+  { p: 0.66, pos: [16, 9, -142], tgt: [-4, -3, -186], fov: 50 },
+  { p: 0.74, pos: [32, 8, -157], tgt: [-4, -2, -186], fov: 48 },
+  { p: 0.8, pos: [16, 3, -197], tgt: [14, 5, -231], fov: 50 },
   { p: 0.9, pos: [10, 3.5, -215], tgt: [36, 10, -262], fov: 46 },
   { p: 1.0, pos: [13, 4.5, -226], tgt: [36, 10, -262], fov: 44 },
 ];
@@ -75,15 +83,17 @@ type RocketKey = { p: number; pos: [number, number, number] };
 /** Rocket path — stays ahead of the camera, threads past the landmarks. */
 const ROCKET_KEYS: RocketKey[] = [
   { p: 0.0, pos: [0, 0, 0] },
-  { p: 0.12, pos: [0, 0.3, -0.5] },
-  { p: 0.22, pos: [0, -0.3, -11] },
-  { p: 0.3, pos: [-10, 2.5, -52] },
-  { p: 0.38, pos: [-9, 3, -74] },
-  { p: 0.46, pos: [6, -2.8, -107] },
-  { p: 0.54, pos: [7.5, -2, -138] },
-  { p: 0.62, pos: [6, 2, -156] },
-  { p: 0.71, pos: [14, 4, -172] },
-  { p: 0.78, pos: [15, 4, -213] },
+  { p: 0.1, pos: [0, 0.3, -0.5] },
+  { p: 0.19, pos: [0, -0.3, -11] },
+  { p: 0.26, pos: [-10, 2.5, -52] },
+  { p: 0.33, pos: [-9, 3, -74] },
+  { p: 0.4, pos: [-5, -2, -88] },
+  { p: 0.47, pos: [-1, -3, -101] },
+  { p: 0.53, pos: [6, -2.8, -115] },
+  { p: 0.6, pos: [7.5, -2, -146] },
+  { p: 0.66, pos: [6, 2, -160] },
+  { p: 0.74, pos: [14, 4, -174] },
+  { p: 0.8, pos: [15, 4, -213] },
   { p: 0.9, pos: [16, 6, -240] },
   { p: 1.0, pos: [19, 7, -248] },
 ];
@@ -172,7 +182,7 @@ export function sampleRocket(
 
   // Blend from "standing vertical" (+Y) to "facing travel direction"
   // across the launch window.
-  const pitchT = THREE.MathUtils.smoothstep(p, 0.1, 0.2);
+  const pitchT = THREE.MathUtils.smoothstep(p, 0.08, 0.17);
   _qFace.setFromUnitVectors(UP, _dir);
   _qPitch.identity();
   outQuat.copy(_qPitch).slerp(_qFace, pitchT);
@@ -187,7 +197,7 @@ export function sampleRocket(
 
   // Thrust profile: cold on the pad, ignition through launch, cruise,
   // then ease off on final approach.
-  const ignition = THREE.MathUtils.smoothstep(p, 0.1, 0.22);
+  const ignition = THREE.MathUtils.smoothstep(p, 0.09, 0.19);
   const arrival = 1 - THREE.MathUtils.smoothstep(p, 0.93, 1.0) * 0.75;
   return ignition * arrival;
 }

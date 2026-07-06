@@ -6,12 +6,11 @@ import type { SectionId } from "@/lib/journey";
 import { PROFILE } from "@/lib/data";
 import { scrollToSection, useCurrentSection, useScrollRaf } from "@/lib/scroll";
 
-const LINKS: { id: SectionId; label: string }[] = [
-  { id: "hero", label: "Home" },
-  { id: "about", label: "About" },
-  { id: "skills", label: "Skills" },
-  { id: "projects", label: "Projects" },
-  { id: "contact", label: "Contact" },
+const LINKS: { id: SectionId; num: string; label: string }[] = [
+  { id: "about", num: "01", label: "About" },
+  { id: "experience", num: "02", label: "Work" },
+  { id: "projects", num: "03", label: "Projects" },
+  { id: "contact", num: "04", label: "Contact" },
 ];
 
 export default function Navbar() {
@@ -19,9 +18,8 @@ export default function Navbar() {
   const lineRef = useRef<HTMLDivElement>(null);
   const scrolledRef = useRef(false);
 
-  const section = useCurrentSection();
-  // The "launch" transition belongs to Home in the nav.
-  const active: SectionId = section === "launch" ? "hero" : section;
+  // hero/launch/skills aren't nav links — no link is active during those.
+  const active: SectionId = useCurrentSection();
 
   useScrollRaf((p) => {
     const scrolled = p > 0.02;
@@ -50,31 +48,11 @@ export default function Navbar() {
           type="button"
           data-cursor
           onClick={() => scrollToSection("hero")}
-          className="pointer-events-auto flex items-center gap-4"
+          className="pointer-events-auto"
           aria-label="Back to top"
         >
-          <span
-            className="grid rotate-45 place-items-center rounded-[6px]"
-            style={{
-              width: 34,
-              height: 34,
-              background:
-                "linear-gradient(135deg, #4cc9f0 0%, #7c3aed 100%)",
-              boxShadow:
-                "0 0 18px rgba(76,201,240,0.55), 0 0 42px rgba(124,58,237,0.35)",
-            }}
-          >
-            <span className="-rotate-45 font-mono text-[11px] font-bold tracking-widest text-white">
-              AB
-            </span>
-          </span>
-          <span className="flex flex-col items-start leading-none">
-            <span className="font-display text-base font-semibold tracking-wide text-star">
-              ABHISHEK
-            </span>
-            <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.28em] text-hud/70">
-              {"// CREATIVE DEV"}
-            </span>
+          <span className="font-display text-2xl font-bold leading-none text-star">
+            ab<span className="text-cyan">.</span>
           </span>
         </button>
 
@@ -92,6 +70,7 @@ export default function Navbar() {
                   isActive ? "text-cyan" : "text-star/60 hover:text-star"
                 }`}
               >
+                <span className="mr-1.5 text-[9px] text-cyan">{link.num}.</span>
                 {link.label}
                 {isActive && (
                   <motion.span
@@ -105,13 +84,15 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Hire me */}
+        {/* Résumé */}
         <a
-          href={`mailto:${PROFILE.email}`}
+          href={PROFILE.resume}
+          target="_blank"
+          rel="noopener noreferrer"
           data-cursor
           className="pointer-events-auto rounded-full border border-cyan/60 px-6 py-2 font-mono text-xs uppercase tracking-hud text-cyan-bright transition-all duration-300 hover:bg-cyan/15 hover:shadow-[0_0_24px_rgba(76,201,240,0.4)]"
         >
-          Hire Me
+          Résumé ↗
         </a>
 
         {/* Bottom hairline — appears once scrolled */}

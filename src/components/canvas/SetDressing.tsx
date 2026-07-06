@@ -4,9 +4,9 @@ import { Float, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { sectionProgress } from "@/lib/journey";
+import { STATION, sectionProgress } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
-import { makeGlowTexture } from "@/lib/textures";
+import { makeGlowTexture, makeTextTexture } from "@/lib/textures";
 
 /**
  * SetDressing — downloaded GLB models (Quaternius Ultimate Space Kit, CC0)
@@ -17,6 +17,8 @@ import { makeGlowTexture } from "@/lib/textures";
 
 useGLTF.preload("/models/astronaut.glb");
 useGLTF.preload("/models/spaceship.glb");
+// NASA IGOAL ISS — draco-compressed; decoder self-hosted in /public/draco
+useGLTF.preload("/models/iss.glb", "/draco/");
 
 /* Spaceship flyby path (world space) — stays far from the camera corridor */
 const SHIP_FROM = new THREE.Vector3(70, 18, -190);
@@ -67,7 +69,7 @@ function Astronaut() {
     const g = groupRef.current;
     if (!g) return;
     const p = scrollState.progress;
-    g.visible = p > 0.2 && p < 0.44;
+    g.visible = p > 0.17 && p < 0.38;
     if (!g.visible) return;
     if (inner.current) {
       inner.current.rotation.z += dt * 0.1;
@@ -136,11 +138,93 @@ function ShipFlyby() {
   );
 }
 
+/**
+ * The work-log station for the experience section — NASA's ISS model
+ * (public domain, NASA 3D Resources), recentered and materials tuned
+ * for the scene lighting.
+ */
+function WorkStation() {
+  const groupRef = useRef<THREE.Group>(null);
+  const spinRef = useRef<THREE.Group>(null);
+  const { scene: issScene } = useGLTF("/models/iss.glb", "/draco/");
+
+  // Compute the recenter offset without mutating or reparenting the GLTF
+  // scene (both break under Strict Mode's double-invoked memos). The
+  // model ships proper PBR maps — only env intensity needs tuning.
+  const center = useMemo(() => {
+    issScene.position.set(0, 0, 0);
+    const box = new THREE.Box3().setFromObject(issScene);
+    const c = box.getCenter(new THREE.Vector3());
+    issScene.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh) {
+        const mesh = o as THREE.Mesh;
+        mesh.frustumCulled = true;
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        if (mat && mat.isMeshStandardMaterial) {
+          mat.envMapIntensity = 1.1;
+        }
+      }
+    });
+    return c;
+  }, [issScene]);
+
+  const label = useMemo(() => {
+    const { texture, aspect } = makeTextTexture("WORK LOG", { size: 120 });
+    const mat = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+    });
+    return { mat, aspect };
+  }, []);
+
+  const labelRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state, dt) => {
+    const g = groupRef.current;
+    if (!g) return;
+    const p = scrollState.progress;
+    g.visible = p > 0.3 && p < 0.54;
+    if (!g.visible) return;
+    if (spinRef.current) spinRef.current.rotation.y += dt * 0.025;
+    const sp = sectionProgress(p, "experience");
+    const alpha =
+      THREE.MathUtils.smoothstep(sp, 0.05, 0.3) *
+      (1 - THREE.MathUtils.smoothstep(sp, 0.85, 1));
+    label.mat.opacity = alpha * 0.9;
+    if (labelRef.current) labelRef.current.quaternion.copy(state.camera.quaternion);
+  });
+
+  return (
+    <group ref={groupRef} position={STATION.position} visible={false}>
+      <Float speed={0.8} rotationIntensity={0.06} floatIntensity={0.4}>
+        {/* Truss runs along source Z — angle it toward the flight path */}
+        <group ref={spinRef} rotation={[0.12, 0.55, -0.06]}>
+          <group scale={1.25}>
+            <group position={[-center.x, -center.y, -center.z]}>
+              <primitive object={issScene} />
+            </group>
+          </group>
+        </group>
+      </Float>
+      {/* Blinking beacon */}
+      <pointLight color="#4cc9f0" intensity={4} distance={14} decay={2} />
+      <mesh ref={labelRef} position={[0, 4.6, 0]} renderOrder={20}>
+        <planeGeometry args={[4.2, 4.2 / label.aspect]} />
+        <primitive object={label.mat} attach="material" />
+      </mesh>
+    </group>
+  );
+}
+
 export default function SetDressing() {
   return (
     <>
       <Astronaut />
       <ShipFlyby />
+      <WorkStation />
     </>
   );
 }
