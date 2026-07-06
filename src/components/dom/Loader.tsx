@@ -1,0 +1,125 @@
+"use client";
+
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useUIStore } from "@/lib/store";
+
+const MIN_SHOW_MS = 1400;
+const FORCE_HIDE_MS = 9000;
+
+function RocketGlyph() {
+  return (
+    <svg
+      width="30"
+      height="44"
+      viewBox="0 0 32 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      {/* Capsule body */}
+      <path
+        d="M16 2 C21.5 8 23 15.5 23 23.5 L23 34 L9 34 L9 23.5 C9 15.5 10.5 8 16 2 Z"
+        fill="#eef2ff"
+      />
+      {/* Fins */}
+      <path d="M9 25 L2.5 36.5 L9 37.5 Z" fill="#c7d2fe" />
+      <path d="M23 25 L29.5 36.5 L23 37.5 Z" fill="#c7d2fe" />
+      {/* Nozzle */}
+      <path d="M12 34 L20 34 L18.5 38 L13.5 38 Z" fill="#8b93b8" />
+      {/* Window */}
+      <circle
+        cx="16"
+        cy="17.5"
+        r="3.6"
+        fill="#4cc9f0"
+        stroke="#7df9ff"
+        strokeWidth="1"
+      />
+      {/* Exhaust */}
+      <ellipse
+        className="animate-blink"
+        cx="16"
+        cy="42.5"
+        rx="3"
+        ry="4"
+        fill="#7df9ff"
+        opacity="0.85"
+      />
+    </svg>
+  );
+}
+
+export default function Loader() {
+  const ready = useUIStore((s) => s.ready);
+  const [minElapsed, setMinElapsed] = useState(false);
+  const [forced, setForced] = useState(false);
+
+  useEffect(() => {
+    const a = window.setTimeout(() => setMinElapsed(true), MIN_SHOW_MS);
+    const b = window.setTimeout(() => setForced(true), FORCE_HIDE_MS);
+    return () => {
+      window.clearTimeout(a);
+      window.clearTimeout(b);
+    };
+  }, []);
+
+  const complete = ready || forced;
+  const hidden = (ready && minElapsed) || forced;
+
+  return (
+    <AnimatePresence>
+      {!hidden && (
+        <motion.div
+          key="loader"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0, scale: 1.04 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-auto fixed inset-0 z-[60] flex items-center justify-center bg-[#02010a]"
+          aria-label="Loading"
+        >
+          <div className="flex flex-col items-center gap-8">
+            {/* HUD ring + rocket */}
+            <div className="relative grid h-24 w-24 place-items-center">
+              <div
+                className="absolute inset-0 animate-spin-slow rounded-full border border-dashed border-cyan/60"
+                style={{
+                  boxShadow:
+                    "0 0 22px rgba(76,201,240,0.35), inset 0 0 18px rgba(76,201,240,0.12)",
+                }}
+              />
+              <div
+                className="absolute inset-2 rounded-full border border-hud/15"
+                aria-hidden
+              />
+              <RocketGlyph />
+            </div>
+
+            <p className="font-mono text-[10px] uppercase tracking-hud text-hud">
+              Initializing Launch Sequence
+            </p>
+
+            {/* Progress bar */}
+            <div className="h-[3px] w-[240px] overflow-hidden rounded-full bg-white/10">
+              <motion.div
+                className="h-full rounded-full"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #7c3aed, #4cc9f0 70%, #7df9ff)",
+                  boxShadow: "0 0 12px rgba(76,201,240,0.8)",
+                }}
+                initial={{ width: "0%" }}
+                animate={{ width: complete ? "100%" : "90%" }}
+                transition={
+                  complete
+                    ? { duration: 0.35, ease: "easeOut" }
+                    : { duration: 2, ease: [0.3, 0.6, 0.3, 1] }
+                }
+              />
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

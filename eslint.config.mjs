@@ -13,6 +13,15 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    // react-three-fiber's useFrame idiom mutates three.js objects
+    // (materials, uniforms, matrices) every frame by design — React
+    // Compiler immutability rules don't apply to the canvas layer.
+    files: ["src/components/canvas/**/*.tsx"],
+    rules: {
+      "react-hooks/immutability": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-space: #050310;
+  --color-space-deep: #02010a;
+  --color-nebula: #7c3aed;
+  --color-nebula-soft: #a78bfa;
+  --color-cyan: #4cc9f0;
+  --color-cyan-bright: #7df9ff;
+  --color-pink: #f0abfc;
+  --color-hud: #9adcff;
+  --color-star: #eef2ff;
+  --font-display: var(--font-space-grotesk);
+  --font-body: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
+  --animate-blink: blink 1.6s ease-in-out infinite;
+  --animate-scroll-dot: scroll-dot 1.8s ease-in-out infinite;
+  --animate-spin-slow: spin 14s linear infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes scroll-dot {
+  0% { transform: translateY(0); opacity: 0; }
+  25% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { transform: translateY(14px); opacity: 0; }
+}
+
+html {
+  background: #02010a;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #02010a;
+  color: #eef2ff;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.55);
+  color: #fff;
+}
+
+/* --- HUD utilities ------------------------------------------------ */
+
+/* Frosted glass panel used by overlays, nav, cards */
+.glass {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.10),
+    rgba(10, 12, 32, 0.55) 45%,
+    rgba(76, 201, 240, 0.08)
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(154, 220, 255, 0.18);
+  box-shadow:
+    0 0 24px rgba(76, 201, 240, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Corner brackets like the reference HUD frames */
+.hud-corners {
+  position: relative;
+}
+.hud-corners::before,
+.hud-corners::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid rgba(154, 220, 255, 0.75);
+  pointer-events: none;
+}
+.hud-corners::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+.hud-corners::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+/* Outlined ghost text behind hero title */
+.text-outline {
+  -webkit-text-stroke: 1.5px rgba(238, 242, 255, 0.28);
+  color: transparent;
+}
+
+.tracking-hud {
+  letter-spacing: 0.34em;
+}
+
+/* Thin technical divider line with gradient falloff */
+.hud-line {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(154, 220, 255, 0.6) 20%,
+    rgba(154, 220, 255, 0.6) 80%,
+    transparent
+  );
+  height: 1px;
+}
+
+/* Custom scrollbar, subtle */
+::-webkit-scrollbar {
+  width: 0px;
+}
+
+/* Hide native cursor when custom cursor active (pointer devices only) */
+@media (pointer: fine) {
+  .custom-cursor-active,
+  .custom-cursor-active a,
+  .custom-cursor-active button,
+  .custom-cursor-active [role="button"],
+  .custom-cursor-active input,
+  .custom-cursor-active textarea {
+    cursor: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

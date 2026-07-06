@@ -1,0 +1,229 @@
+"use client";
+
+import { Float } from "@react-three/drei";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import * as THREE from "three";
+import { SKILLS, type Skill } from "@/lib/data";
+import { makeGlowTexture, makeSkillCardTexture } from "@/lib/textures";
+
+/**
+ * SkillCards — six holographic telemetry panels floating along the skills
+ * corridor (z -100..-142). The rocket threads between them; each card lazily
+ * billboards toward the camera and fades in/out based on flight distance.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Layout — absolute positions straddling the camera's diagonal path   */
+/* through the corridor (spine runs (3,-1,-96) -> (8.5,-2,-127); cards */
+/* alternate ~6 units either side of it so each one sweeps past the    */
+/* edge of frame like the reference video).                            */
+/* ------------------------------------------------------------------ */
+
+type Slot = { x: number; y: number; z: number; side: 1 | -1 };
+
+const LAYOUT: Slot[] = [
+  { x: -1.6, y: 0.9, z: -101, side: -1 },
+  { x: 11.3, y: -3.7, z: -109, side: 1 },
+  { x: 0.5, y: -2.4, z: -117, side: -1 },
+  { x: 13.8, y: 1.3, z: -125, side: 1 },
+  { x: 3.6, y: -4.8, z: -133, side: -1 },
+  { x: 17.4, y: -0.6, z: -141, side: 1 },
+];
+
+/* Scratch — zero per-frame allocations */
+const UP = new THREE.Vector3(0, 1, 0);
+const _mat4 = new THREE.Matrix4();
+const _qTarget = new THREE.Quaternion();
+const _wPos = new THREE.Vector3();
+
+/* ------------------------------------------------------------------ */
+/* Card                                                                */
+/* ------------------------------------------------------------------ */
+
+type CardProps = {
+  skill: Skill;
+  position: [number, number, number];
+  /** +1 card sits right of the flight path, -1 left. */
+  side: 1 | -1;
+  plane: THREE.PlaneGeometry;
+  glowTex: THREE.CanvasTexture;
+};
+
+function Card({ skill, position, side, plane, glowTex }: CardProps) {
+  const inner = useRef<THREE.Group>(null);
+  const hovered = useRef(false);
+  const hoverScale = useRef(1);
+  const glowBase = useRef(0.35);
+
+  const cardMat = useMemo(() => {
+    const m = new THREE.MeshBasicMaterial({
+      map: makeSkillCardTexture(skill),
+      transparent: true,
+      depthWrite: false,
+      opacity: 0,
+    });
+    m.toneMapped = false;
+    m.fog = false;
+    return m;
+  }, [skill]);
+
+  const glowMat = useMemo(() => {
+    const m = new THREE.MeshBasicMaterial({
+      map: glowTex,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 0,
+    });
+    m.toneMapped = false;
+    m.fog = false;
+    return m;
+  }, [glowTex]);
+
+  const tickMat = useMemo(() => {
+    const m = new THREE.MeshBasicMaterial({
+      map: glowTex,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 0,
+    });
+    m.toneMapped = false;
+    m.fog = false;
+    return m;
+  }, [glowTex]);
+
+  useEffect(() => {
+    return () => {
+      cardMat.map?.dispose();
+      cardMat.dispose();
+      glowMat.dispose();
+      tickMat.dispose();
+    };
+  }, [cardMat, glowMat, tickMat]);
+
+  useFrame((state, delta) => {
+    const g = inner.current;
+    if (!g) return;
+    const dt = Math.min(delta, 0.05);
+
+    // Distance-based reveal: fade in while approaching, hold, fade once passed
+    const dz = position[2] - state.camera.position.z;
+    const alpha =
+      THREE.MathUtils.smoothstep(dz, -46, -20) *
+      (1 - THREE.MathUtils.smoothstep(dz, 4, 12));
+
+    const visible = alpha > 0.004;
+    g.visible = visible;
+
+    // Hover response — damped, no react state
+    hoverScale.current = THREE.MathUtils.damp(
+      hoverScale.current,
+      hovered.current ? 1.06 : 1,
+      8,
+      dt
+    );
+    glowBase.current = THREE.MathUtils.damp(
+      glowBase.current,
+      hovered.current ? 0.55 : 0.35,
+      8,
+      dt
+    );
+
+    cardMat.opacity = alpha;
+    glowMat.opacity = glowBase.current * alpha;
+    tickMat.opacity = 0.5 * alpha;
+
+    g.scale.setScalar((0.85 + 0.15 * alpha) * hoverScale.current);
+
+    if (!visible) return;
+
+    // Lazy billboard: slerp toward camera-facing, keeping slight variance
+    g.getWorldPosition(_wPos);
+    _mat4.lookAt(state.camera.position, _wPos, UP);
+    _qTarget.setFromRotationMatrix(_mat4);
+    g.quaternion.slerp(_qTarget, 1 - Math.exp(-5 * dt)); // ~0.08 @ 60fps
+  });
+
+  const onOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    hovered.current = true;
+  };
+  const onOut = () => {
+    hovered.current = false;
+  };
+
+  return (
+    <group position={position}>
+      <Float speed={1.6} rotationIntensity={0.25} floatIntensity={0.9}>
+        <group ref={inner}>
+          {/* Soft additive backlight */}
+          <mesh
+            geometry={plane}
+            material={glowMat}
+            position={[0, 0, -0.06]}
+            scale={[3.55, 2.05, 1]}
+            renderOrder={14}
+          />
+          {/* Main HUD panel */}
+          <mesh
+            geometry={plane}
+            material={cardMat}
+            scale={[3.4, 1.9, 1]}
+            renderOrder={15}
+            onPointerOver={onOver}
+            onPointerOut={onOut}
+          />
+          {/* Connector tick angled toward the flight path */}
+          <mesh
+            geometry={plane}
+            material={tickMat}
+            position={[-side * 0.35, -1.5, 0]}
+            rotation={[0, 0, -side * 0.42]}
+            scale={[0.07, 1.35, 1]}
+            renderOrder={14}
+          />
+        </group>
+      </Float>
+    </group>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* SkillCards                                                          */
+/* ------------------------------------------------------------------ */
+
+export default function SkillCards() {
+  const shared = useMemo(() => {
+    return {
+      plane: new THREE.PlaneGeometry(1, 1),
+      glowTex: makeGlowTexture("rgba(76,201,240,0.55)"),
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      shared.plane.dispose();
+      shared.glowTex.dispose();
+    };
+  }, [shared]);
+
+  return (
+    <group>
+      {SKILLS.map((skill, i) => {
+        const slot = LAYOUT[i % LAYOUT.length];
+        return (
+          <Card
+            key={skill.name}
+            skill={skill}
+            position={[slot.x, slot.y, slot.z]}
+            side={slot.side}
+            plane={shared.plane}
+            glowTex={shared.glowTex}
+          />
+        );
+      })}
+    </group>
+  );
+}
