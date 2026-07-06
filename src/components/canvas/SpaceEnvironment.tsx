@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Stars } from "@react-three/drei";
+import { Sparkles, Stars, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
@@ -11,7 +11,10 @@ import {
   SKILLS_CENTER,
 } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
-import { makeGlowTexture, makeTextTexture } from "@/lib/textures";
+import { makeGlowTexture } from "@/lib/textures";
+
+useTexture.preload("/textures/6k_stars_milky_way.jpg");
+useTexture.preload("/textures/2k_moon.jpg");
 
 /**
  * SpaceEnvironment — the atmosphere of the whole voyage.
@@ -73,43 +76,45 @@ function composeStreak(
 /* Nebula skybox shader                                                */
 /* ------------------------------------------------------------------ */
 
-const NEBULA_VERT = /* glsl */ `
+const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
+varying vec2 vUv;
 void main() {
   vDir = position;
+  vUv = uv;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
 
-const NEBULA_FRAG = /* glsl */ `
+const SKY_FRAG = /* glsl */ `
 precision highp float;
 varying vec3 vDir;
+varying vec2 vUv;
+uniform sampler2D uMap;
 uniform float uTime;
 
-float hash13(vec3 p) {
+float hashSky(vec3 p) {
   p = fract(p * 0.1031);
   p += dot(p, p.zyx + 31.32);
   return fract((p.x + p.y) * p.z);
 }
-
-float vnoise(vec3 p) {
+float vnoiseSky(vec3 p) {
   vec3 i = floor(p);
   vec3 f = fract(p);
   vec3 u = f * f * (3.0 - 2.0 * f);
   return mix(
-    mix(mix(hash13(i + vec3(0.0, 0.0, 0.0)), hash13(i + vec3(1.0, 0.0, 0.0)), u.x),
-        mix(hash13(i + vec3(0.0, 1.0, 0.0)), hash13(i + vec3(1.0, 1.0, 0.0)), u.x), u.y),
-    mix(mix(hash13(i + vec3(0.0, 0.0, 1.0)), hash13(i + vec3(1.0, 0.0, 1.0)), u.x),
-        mix(hash13(i + vec3(0.0, 1.0, 1.0)), hash13(i + vec3(1.0, 1.0, 1.0)), u.x), u.y),
+    mix(mix(hashSky(i), hashSky(i + vec3(1,0,0)), u.x),
+        mix(hashSky(i + vec3(0,1,0)), hashSky(i + vec3(1,1,0)), u.x), u.y),
+    mix(mix(hashSky(i + vec3(0,0,1)), hashSky(i + vec3(1,0,1)), u.x),
+        mix(hashSky(i + vec3(0,1,1)), hashSky(i + vec3(1,1,1)), u.x), u.y),
     u.z);
 }
-
-float fbm(vec3 p) {
+float fbmSky(vec3 p) {
   float v = 0.0;
-  float a = 0.52;
-  for (int i = 0; i < 4; i++) {
-    v += a * vnoise(p);
-    p = p * 2.07 + vec3(11.3, 7.1, 5.9);
+  float a = 0.5;
+  for (int i = 0; i < 3; i++) {
+    v += a * vnoiseSky(p);
+    p = p * 2.1 + vec3(9.3, 4.1, 7.7);
     a *= 0.5;
   }
   return v;
@@ -117,53 +122,20 @@ float fbm(vec3 p) {
 
 void main() {
   vec3 dir = normalize(vDir);
-  float t = uTime * 0.004; // very slow drift
-  vec3 p = dir * 3.1;
 
-  // Domain warp: q warps p, r warps again for wispy filaments
-  vec3 q = vec3(
-    fbm(p + t),
-    fbm(p + vec3(5.2, 1.3, 2.8) - t * 0.7),
-    fbm(p + vec3(1.2, 8.3, 4.7))
-  );
-  float f = fbm(p + 2.4 * q + vec3(9.7, 2.1, 6.4) + t * 0.35);
-  float g = fbm(p * 1.7 + 3.1 * q + vec3(4.4, 14.2, 8.8));
+  // Real Milky Way panorama — slightly deepened blacks so the scene's
+  // own stars and bloom read on top of it.
+  vec3 tex = texture2D(uMap, vUv).rgb;
+  vec3 col = pow(tex, vec3(1.18)) * 0.85;
 
-  // Large-scale directional density — some sky regions stay near-black
-  float region = fbm(dir * 1.25 + vec3(23.7, 11.9, 31.4));
-  float density = smoothstep(0.32, 0.78, region);
-
-  // Brightest clouds gather toward a horizon-ish band
-  float band = 1.0 - smoothstep(0.05, 0.6, abs(dir.y + 0.06));
-
-  float clouds = f * mix(0.25, 1.25, density);
-
-  vec3 col = vec3(0.0196, 0.0118, 0.0627);                                        // #050310 base
-  col = mix(col, vec3(0.043, 0.165, 0.369),
-            smoothstep(0.3, 0.72, q.y) * 0.5 * density);                           // #0b2a5e pockets
-  col = mix(col, vec3(0.231, 0.114, 0.561), smoothstep(0.34, 0.8, clouds));        // #3b1d8f
-  col = mix(col, vec3(0.486, 0.227, 0.929),
-            smoothstep(0.56, 0.98, clouds) * (0.35 + 0.65 * band));                // #7c3aed
-  col = mix(col, vec3(0.698, 0.231, 0.839),
-            smoothstep(0.62, 1.05, g * clouds * 1.6) * 0.6 * band);                // #b23bd6 accents
-  col += vec3(0.486, 0.227, 0.929) * band * clouds * clouds * 0.3;
-
-  // Fine procedural star sparkle
-  vec3 sp = dir * 260.0;
-  vec3 cell = floor(sp);
-  float h = hash13(cell);
-  if (h > 0.998) {
-    vec3 sf = fract(sp) - 0.5;
-    float d = length(sf);
-    float tw = 0.7 + 0.3 * sin(uTime * 1.4 + h * 900.0);
-    float s = smoothstep(0.24, 0.0, d) * tw * 1.5;
-    vec3 starCol = mix(vec3(0.93, 0.95, 1.0), vec3(0.604, 0.863, 1.0), step(0.9992, h)); // some #9adcff
-    col += starCol * s;
-  }
+  // Whisper of violet nebulosity for the site's mood — barely there
+  float neb = fbmSky(dir * 2.3 + vec3(uTime * 0.003));
+  col += vec3(0.09, 0.045, 0.20) * smoothstep(0.58, 0.95, neb) * 0.30;
 
   gl_FragColor = vec4(col, 1.0);
 }
 `;
+
 
 /* ------------------------------------------------------------------ */
 /* Constants                                                           */
@@ -186,22 +158,34 @@ const AST_STEP = 30; // instances tumbled per frame (round-robin)
 
 export default function SpaceEnvironment() {
   const envGroup = useRef<THREE.Group | null>(null);
-  const titleGroup = useRef<THREE.Group | null>(null);
   const warpSpeed = useRef(0);
   const astCursor = useRef(0);
 
-  /* -------- nebula skybox -------- */
+  /* -------- Milky Way skybox (real panorama) -------- */
+  const [milkyWay, moonTex] = useTexture(
+    ["/textures/6k_stars_milky_way.jpg", "/textures/2k_moon.jpg"],
+    (t) => {
+      for (const tex of Array.isArray(t) ? t : [t]) {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
+      }
+    }
+  );
+
   const sky = useMemo(() => {
-    const geo = new THREE.SphereGeometry(340, 48, 32);
+    const geo = new THREE.SphereGeometry(340, 64, 40);
     const mat = new THREE.ShaderMaterial({
-      vertexShader: NEBULA_VERT,
-      fragmentShader: NEBULA_FRAG,
-      uniforms: { uTime: { value: 0 } },
+      vertexShader: SKY_VERT,
+      fragmentShader: SKY_FRAG,
+      uniforms: {
+        uMap: { value: milkyWay },
+        uTime: { value: 0 },
+      },
       side: THREE.BackSide,
       depthWrite: false,
     });
     return { geo, mat };
-  }, []);
+  }, [milkyWay]);
 
   /* -------- comet streaks -------- */
   const comets = useMemo(() => {
@@ -230,7 +214,7 @@ export default function SpaceEnvironment() {
     const phase = new Float32Array(N);
     const pulse = new Float32Array(N);
     const baseCol = new Float32Array(N * 3);
-    const palette = ["#7df9ff", "#f0abfc", "#a78bfa", "#ffffff"].map(
+    const palette = ["#cfe6ff", "#ffffff", "#9adcff", "#fff3e0"].map(
       (c) => new THREE.Color(c)
     );
     const c = new THREE.Color();
@@ -342,9 +326,10 @@ export default function SpaceEnvironment() {
     }
     geo.computeVertexNormals();
     const mat = new THREE.MeshStandardMaterial({
-      color: "#8a7d72",
-      roughness: 0.9,
-      metalness: 0.1,
+      color: "#8a8078",
+      map: moonTex,
+      roughness: 0.95,
+      metalness: 0.05,
     });
     const mesh = new THREE.InstancedMesh(geo, mat, N);
     mesh.frustumCulled = false;
@@ -417,39 +402,14 @@ export default function SpaceEnvironment() {
       mesh.setMatrixAt(k, _m4);
     }
     return { mesh, positions, scales, speeds, axes, quats, N };
-  }, []);
-
-  /* -------- hero title -------- */
-  const title = useMemo(() => {
-    const { texture, aspect } = makeTextTexture("PORTFOLIO", {
-      size: 230,
-      color: "#f4f6ff",
-    });
-    const mainMat = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      depthWrite: false,
-      fog: false,
-      opacity: 1,
-    });
-    const ghostMat = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      depthWrite: false,
-      fog: false,
-      opacity: 0.22,
-    });
-    return { aspect, mainMat, ghostMat };
-  }, []);
-
-  const titleGeo = useMemo(() => new THREE.PlaneGeometry(1, 1), []);
+     
+  }, [moonTex]);
 
   /* -------- per-frame animation -------- */
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.066);
     const t = state.clock.elapsedTime;
     const cam = state.camera;
-    const p = scrollState.progress;
 
     // Skybox + far starfields ride with the camera (true "infinity" layer)
     if (envGroup.current) envGroup.current.position.copy(cam.position);
@@ -549,30 +509,6 @@ export default function SpaceEnvironment() {
       mesh.instanceMatrix.needsUpdate = true;
     }
 
-    /* hero title — dissolve on launch, pointer parallax */
-    {
-      const fade = 1 - THREE.MathUtils.smoothstep(p, 0.055, 0.13);
-      const tg = titleGroup.current;
-      if (tg) {
-        tg.visible = fade > 0.004;
-        if (tg.visible) {
-          title.mainMat.opacity = fade;
-          title.ghostMat.opacity = 0.22 * fade;
-          tg.position.x = THREE.MathUtils.damp(
-            tg.position.x,
-            state.pointer.x * 0.3,
-            3.2,
-            dt
-          );
-          tg.position.y = THREE.MathUtils.damp(
-            tg.position.y,
-            state.pointer.y * 0.3,
-            3.2,
-            dt
-          );
-        }
-      }
-    }
   });
 
   return (
@@ -588,24 +524,6 @@ export default function SpaceEnvironment() {
       <primitive object={comets.mesh} />
       <primitive object={warp.mesh} />
       <primitive object={asteroids.mesh} />
-
-      {/* Hero title in 3D — the rocket occludes it like the video */}
-      <group ref={titleGroup}>
-        <mesh
-          position={[0, 0.72, -4.6]}
-          scale={[11.5, 11.5 / title.aspect, 1]}
-          geometry={titleGeo}
-          material={title.mainMat}
-          renderOrder={2}
-        />
-        <mesh
-          position={[0.55, 1.05, -8.5]}
-          scale={[13.5, 13.5 / title.aspect, 1]}
-          geometry={titleGeo}
-          material={title.ghostMat}
-          renderOrder={1}
-        />
-      </group>
 
       {/* Ambient sparkle clusters */}
       <Sparkles

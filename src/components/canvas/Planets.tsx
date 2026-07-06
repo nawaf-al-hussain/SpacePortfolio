@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import {
   ABOUT_PLANET,
@@ -51,8 +52,10 @@ const PLANET_VERT = /* glsl */ `
   varying vec3 vPos;
   varying vec3 vWorldNormal;
   varying vec3 vWorldPos;
+  varying vec2 vUv;
   void main() {
     vPos = position;
+    vUv = uv;
     vWorldNormal = normalize(mat3(modelMatrix) * normal);
     vec4 wp = modelMatrix * vec4(position, 1.0);
     vWorldPos = wp.xyz;
@@ -76,73 +79,97 @@ const ATMO_FRAG = /* glsl */ `
   }
 `;
 
-const ABOUT_FRAG = /* glsl */ `
+/** Photoreal Earth: day/night blend, warm terminator, city lights. */
+const EARTH_FRAG = /* glsl */ `
   uniform vec3 uLightDir;
-  uniform vec3 uColOrange;
-  uniform vec3 uColAmber;
-  uniform vec3 uColMaroon;
-  uniform vec3 uCityColor;
+  uniform sampler2D uDayMap;
+  uniform sampler2D uNightMap;
   varying vec3 vPos;
   varying vec3 vWorldNormal;
   varying vec3 vWorldPos;
-  ${NOISE_GLSL}
+  varying vec2 vUv;
   void main() {
     vec3 n = normalize(vWorldNormal);
-    vec3 sp = vPos * 0.32;
-    float continents = fbm(sp);
-    float detail = fbm(sp * 3.1 + vec3(7.0));
-    vec3 albedo = mix(uColMaroon, uColOrange, smoothstep(0.32, 0.52, continents));
-    albedo = mix(albedo, uColAmber, smoothstep(0.52, 0.72, continents + detail * 0.18));
-    albedo *= 0.82 + detail * 0.36;
-
+    vec3 v = normalize(cameraPosition - vWorldPos);
     float lambert = dot(n, uLightDir);
-    float diff = max(lambert, 0.0);
-    vec3 col = albedo * (0.035 + diff * 1.25);
 
-    // Night-side city lights: high-frequency speckles gated by cluster noise
-    float night = 1.0 - smoothstep(-0.18, 0.05, lambert);
-    float speck = vnoise(vPos * 8.0);
-    float clusters = smoothstep(0.5, 0.75, fbm(sp * 2.2 + vec3(3.0)));
-    float lights = smoothstep(0.8, 0.94, speck) * clusters;
-    col += uCityColor * lights * night * 2.4;
+    vec3 day = texture2D(uDayMap, vUv).rgb;
+    vec3 nightTex = texture2D(uNightMap, vUv).rgb;
+
+    // Day side with softly falling terminator
+    float diff = pow(clamp(lambert, 0.0, 1.0), 0.9);
+    vec3 col = day * (0.012 + diff * 1.5);
+
+    // Warm sunset band along the terminator
+    float term = 1.0 - smoothstep(0.0, 0.35, abs(lambert - 0.05));
+    col *= mix(vec3(1.0), vec3(1.12, 0.86, 0.68), term * 0.55);
+
+    // City lights emerge on the night side (natural sodium color)
+    float night = 1.0 - smoothstep(-0.12, 0.1, lambert);
+    vec3 lights = pow(nightTex, vec3(1.35)) * vec3(1.0, 0.82, 0.58);
+    col += lights * night * 2.0;
+
+    // Faint blue atmospheric haze toward the limb (day side only)
+    float fres = pow(1.0 - max(dot(n, v), 0.0), 2.4);
+    col += vec3(0.32, 0.56, 1.0) * fres * clamp(lambert, 0.0, 1.0) * 0.35;
 
     gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+/** Cloud shell: lit white clouds, transparent over ocean/land. */
+const CLOUD_FRAG = /* glsl */ `
+  uniform vec3 uLightDir;
+  uniform sampler2D uCloudMap;
+  varying vec3 vWorldNormal;
+  varying vec3 vWorldPos;
+  varying vec2 vUv;
+  void main() {
+    vec3 n = normalize(vWorldNormal);
+    float lambert = dot(n, uLightDir);
+    float cloud = texture2D(uCloudMap, vUv).r;
+    float lit = 0.03 + pow(clamp(lambert, 0.0, 1.0), 0.85) * 1.35;
+    // Warm the clouds at the terminator too
+    float term = 1.0 - smoothstep(0.0, 0.3, abs(lambert - 0.05));
+    vec3 col = vec3(lit) * mix(vec3(1.0), vec3(1.1, 0.85, 0.7), term * 0.5);
+    gl_FragColor = vec4(col, cloud * 0.92);
   }
 `;
 
 const GAS_FRAG = /* glsl */ `
   uniform vec3 uLightDir;
   uniform float uTime;
-  uniform vec3 uColDeep;
-  uniform vec3 uColMid;
   uniform vec3 uColHigh;
+  uniform sampler2D uMap;
   varying vec3 vPos;
   varying vec3 vWorldNormal;
   varying vec3 vWorldPos;
+  varying vec2 vUv;
   ${NOISE_GLSL}
   void main() {
     vec3 n = normalize(vWorldNormal);
-    vec3 p = vPos * 0.16;
-    float warp = fbm(p * 1.8 + vec3(0.0, uTime * 0.01, 0.0));
-    float warp2 = fbm(p * 3.2 + vec3(11.0) + vec3(warp));
-    // Horizontal banding: compress along y so stripes run around the equator
-    vec3 bp = vec3(p.x, p.y * 4.0, p.z) + vec3(warp * 0.9, warp2 * 0.35, 0.0);
-    float bands = fbm(bp + vec3(0.0, uTime * 0.008, 0.0));
 
-    vec3 col = mix(uColDeep, uColMid, smoothstep(0.3, 0.55, bands));
-    col = mix(col, uColHigh, smoothstep(0.55, 0.78, bands));
+    // Real Neptune albedo with slow band drift + counter-drifting shimmer
+    vec3 texA = texture2D(uMap, vec2(vUv.x + uTime * 0.004, vUv.y)).rgb;
+    vec3 texB = texture2D(uMap, vec2(vUv.x * 1.0 + 0.5 - uTime * 0.002, vUv.y)).rgb;
+    vec3 col = mix(texA, texB, 0.15);
 
-    // Pale storm swirls via domain warp
-    float storm = fbm(p * 4.5 + vec3(warp2 * 1.8) + vec3(5.0, 0.0, uTime * 0.015));
-    col = mix(col, vec3(0.88, 0.97, 1.0), smoothstep(0.68, 0.92, storm) * 0.45);
+    // Gentle living turbulence so the surface never reads as a static JPEG
+    float storm = fbm(vPos * 0.6 + vec3(0.0, uTime * 0.02, 0.0));
+    col = mix(col, vec3(0.88, 0.97, 1.0), smoothstep(0.78, 0.95, storm) * 0.18);
 
     float lambert = dot(n, uLightDir);
-    col *= 0.05 + max(lambert, 0.0) * 1.25;
+    col *= 0.05 + max(lambert, 0.0) * 1.3;
 
-    // Cyan fresnel rim
     vec3 v = normalize(cameraPosition - vWorldPos);
-    float fres = pow(1.0 - max(dot(n, v), 0.0), 3.0);
-    col += uColHigh * fres * 0.9;
+    float nv = max(dot(n, v), 0.0);
+
+    // Gas-giant limb darkening — brighter disc centre, dimmer edges
+    col *= 0.45 + 0.55 * pow(nv, 0.55);
+
+    // Soft blue haze at the limb instead of a hard neon rim
+    float fres = pow(1.0 - nv, 3.2);
+    col += uColHigh * fres * 0.45 * (0.25 + max(lambert, 0.0));
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -189,24 +216,27 @@ const RING_FRAG = /* glsl */ `
 const SUN_FRAG = /* glsl */ `
   uniform float uTime;
   uniform float uReveal;
-  uniform vec3 uColCore;
-  uniform vec3 uColMid;
-  uniform vec3 uColDeep;
+  uniform sampler2D uMap;
   varying vec3 vPos;
   varying vec3 vWorldNormal;
   varying vec3 vWorldPos;
+  varying vec2 vUv;
   ${NOISE_GLSL}
   void main() {
-    vec3 p = vPos * 0.45;
-    vec3 q = vec3(
-      fbm(p + vec3(0.0, 0.0, uTime * 0.05)),
-      fbm(p + vec3(5.2, 1.3, -uTime * 0.04)),
-      fbm(p + vec3(2.8, 8.1, uTime * 0.03))
-    );
-    float f = fbm(p * 2.0 + q * 1.7 + vec3(uTime * 0.02));
-    vec3 col = mix(uColDeep, uColMid, smoothstep(0.2, 0.5, f));
-    col = mix(col, uColCore, smoothstep(0.5, 0.78, f));
-    col *= (1.25 + f * 1.05) * (0.45 + 0.55 * uReveal); // >1 -> bloom, swells on approach
+    // Real solar surface, slowly rotating, with animated churn on top
+    vec3 tex = texture2D(uMap, vec2(vUv.x + uTime * 0.006, vUv.y)).rgb;
+    float flicker = fbm(vPos * 0.8 + vec3(uTime * 0.12, 0.0, uTime * 0.07));
+    vec3 col = tex * (1.7 + (flicker - 0.5) * 0.7);
+
+    // Solar limb darkening — the photosphere dims and reddens at the edge
+    vec3 n = normalize(vWorldNormal);
+    vec3 v = normalize(cameraPosition - vWorldPos);
+    float nv = max(dot(n, v), 0.0);
+    float limb = 0.35 + 0.65 * pow(nv, 0.6);
+    col *= limb;
+    col.b *= 0.75 + 0.25 * limb;
+
+    col *= (0.45 + 0.55 * uReveal); // swells on approach (bloom picks up >1)
     gl_FragColor = vec4(col, 1.0);
   }
 `;
@@ -216,6 +246,27 @@ const SUN_FRAG = /* glsl */ `
 /* ------------------------------------------------------------------ */
 
 const LIGHT_DIR = new THREE.Vector3(1, 0.4, 0.6).normalize();
+
+/** Albedo texture setup shared by every planet map. */
+function prepAlbedo(tex: THREE.Texture | THREE.Texture[]) {
+  for (const t of Array.isArray(tex) ? tex : [tex]) {
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    t.wrapS = THREE.RepeatWrapping;
+    t.needsUpdate = true;
+  }
+}
+
+useTexture.preload("/textures/4k_earth_daymap.jpg");
+useTexture.preload("/textures/4k_earth_nightmap.jpg");
+useTexture.preload("/textures/4k_earth_clouds.jpg");
+useTexture.preload("/textures/2k_mars.jpg");
+useTexture.preload("/textures/2k_neptune.jpg");
+useTexture.preload("/textures/4k_sun.jpg");
+useTexture.preload("/textures/2k_saturn.jpg");
+useTexture.preload("/textures/2k_saturn_ring_alpha.png");
+useTexture.preload("/textures/2k_jupiter.jpg");
+useTexture.preload("/textures/2k_moon.jpg");
 
 const smoothstep = THREE.MathUtils.smoothstep;
 
@@ -336,25 +387,48 @@ function BillboardLabel({
 
 function AboutPlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
+  const cloudsRef = useRef<THREE.Mesh>(null);
   const beltRef = useRef<THREE.Points>(null);
+
+  const [dayMap, nightMap, cloudMap] = useTexture(
+    [
+      "/textures/4k_earth_daymap.jpg",
+      "/textures/4k_earth_nightmap.jpg",
+      "/textures/4k_earth_clouds.jpg",
+    ],
+    prepAlbedo
+  );
 
   const surfaceMat = useMemo(
     () =>
       new THREE.ShaderMaterial({
         vertexShader: PLANET_VERT,
-        fragmentShader: ABOUT_FRAG,
+        fragmentShader: EARTH_FRAG,
         uniforms: {
           uLightDir: { value: LIGHT_DIR },
-          uColOrange: { value: new THREE.Color("#c2571b") },
-          uColAmber: { value: new THREE.Color("#e8944a") },
-          uColMaroon: { value: new THREE.Color("#4a1d0d") },
-          uCityColor: { value: new THREE.Color("#ffb347") },
+          uDayMap: { value: dayMap },
+          uNightMap: { value: nightMap },
         },
       }),
-    []
+    [dayMap, nightMap]
   );
 
-  const atmoMat = useMemo(() => createAtmosphereMaterial("#ff7b33", 1.35), []);
+  const cloudMat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: PLANET_VERT,
+        fragmentShader: CLOUD_FRAG,
+        uniforms: {
+          uLightDir: { value: LIGHT_DIR },
+          uCloudMap: { value: cloudMap },
+        },
+        transparent: true,
+        depthWrite: false,
+      }),
+    [cloudMap]
+  );
+
+  const atmoMat = useMemo(() => createAtmosphereMaterial("#5da9ff", 1.15), []);
 
   const belt = useMemo(() => {
     const count = 600;
@@ -384,18 +458,22 @@ function AboutPlanet() {
   }, []);
 
   useFrame((_, dt) => {
-    if (planetRef.current) planetRef.current.rotation.y += dt * 0.02;
+    if (planetRef.current) planetRef.current.rotation.y += dt * 0.008;
+    if (cloudsRef.current) cloudsRef.current.rotation.y += dt * 0.012;
     if (beltRef.current) beltRef.current.rotation.y += dt * 0.012;
   });
 
   return (
     <>
-      <group position={ABOUT_PLANET.position}>
+      <group position={ABOUT_PLANET.position} rotation={[0, 0, 0.41]}>
         <mesh ref={planetRef} material={surfaceMat}>
-          <sphereGeometry args={[ABOUT_PLANET.radius, 64, 64]} />
+          <sphereGeometry args={[ABOUT_PLANET.radius, 96, 96]} />
+        </mesh>
+        <mesh ref={cloudsRef} material={cloudMat} renderOrder={2}>
+          <sphereGeometry args={[ABOUT_PLANET.radius * 1.012, 96, 96]} />
         </mesh>
         <mesh material={atmoMat} renderOrder={3}>
-          <sphereGeometry args={[ABOUT_PLANET.radius * 1.06, 48, 48]} />
+          <sphereGeometry args={[ABOUT_PLANET.radius * 1.055, 48, 48]} />
         </mesh>
         <group rotation={ASTEROID_TILT}>
           <points
@@ -424,6 +502,8 @@ function AboutPlanet() {
 function ProjectsPlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
 
+  const neptuneMap = useTexture("/textures/2k_neptune.jpg", prepAlbedo);
+
   const surfaceMat = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -432,12 +512,11 @@ function ProjectsPlanet() {
         uniforms: {
           uLightDir: { value: LIGHT_DIR },
           uTime: { value: 0 },
-          uColDeep: { value: new THREE.Color("#123a8f") },
-          uColMid: { value: new THREE.Color("#2d7dd2") },
           uColHigh: { value: new THREE.Color("#4cc9f0") },
+          uMap: { value: neptuneMap },
         },
       }),
-    []
+    [neptuneMap]
   );
 
   const atmoMat = useMemo(() => createAtmosphereMaterial("#4cc9f0", 1.2), []);
@@ -467,12 +546,10 @@ function ProjectsPlanet() {
     const t = state.clock.elapsedTime;
     surfaceMat.uniforms.uTime.value = t;
     ringMat.uniforms.uTime.value = t;
-    // The ring stays hidden until the voyage nears the projects reveal
-    ringMat.uniforms.uReveal.value = smoothstep(
-      scrollState.progress,
-      0.44,
-      0.58
-    );
+    // Ring + atmosphere glow stay quiet until the voyage nears the reveal
+    const reveal = smoothstep(scrollState.progress, 0.44, 0.58);
+    ringMat.uniforms.uReveal.value = reveal;
+    atmoMat.uniforms.uIntensity.value = 1.2 * (0.22 + 0.78 * reveal);
   });
 
   return (
@@ -510,6 +587,8 @@ function ProjectsPlanet() {
 /* ------------------------------------------------------------------ */
 
 function ContactSun() {
+  const sunTex = useTexture("/textures/4k_sun.jpg", prepAlbedo);
+
   const sunMat = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -518,12 +597,10 @@ function ContactSun() {
         uniforms: {
           uTime: { value: 0 },
           uReveal: { value: 0 },
-          uColCore: { value: new THREE.Color("#ffe9a8") },
-          uColMid: { value: new THREE.Color("#ff9d2e") },
-          uColDeep: { value: new THREE.Color("#c23e02") },
+          uMap: { value: sunTex },
         },
       }),
-    []
+    [sunTex]
   );
 
   const glowMats = useMemo(() => {
@@ -618,7 +695,18 @@ function ContactSun() {
 /* ------------------------------------------------------------------ */
 
 function BackgroundPlanets() {
-  const sphereGeom = useMemo(() => new THREE.SphereGeometry(1, 32, 32), []);
+  const sphereGeom = useMemo(() => new THREE.SphereGeometry(1, 48, 48), []);
+
+  const [saturnMap, saturnRingMap, jupiterMap, moonMap, marsMap] = useTexture(
+    [
+      "/textures/2k_saturn.jpg",
+      "/textures/2k_saturn_ring_alpha.png",
+      "/textures/2k_jupiter.jpg",
+      "/textures/2k_moon.jpg",
+      "/textures/2k_mars.jpg",
+    ],
+    prepAlbedo
+  );
 
   const mats = useMemo(() => {
     const std = (color: string) =>
@@ -627,56 +715,80 @@ function BackgroundPlanets() {
         roughness: 0.92,
         metalness: 0.05,
       });
+    const textured = (map: THREE.Texture, roughness = 0.95) =>
+      new THREE.MeshStandardMaterial({ map, roughness, metalness: 0 });
     const ring = new THREE.MeshBasicMaterial({
-      color: "#5a4634",
+      map: saturnRingMap,
       transparent: true,
-      opacity: 0.32,
+      opacity: 0.9,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
     return {
-      navy: std("#0d1220"),
-      brown: std("#6b4a35"),
-      slate: std("#24304d"),
+      mars: textured(marsMap),
+      saturn: textured(saturnMap),
+      jupiter: textured(jupiterMap),
       gray: std("#3a3f4d"),
-      moon: std("#262b3a"),
+      moon: textured(moonMap, 1),
       ring,
     };
+  }, [saturnMap, saturnRingMap, jupiterMap, moonMap, marsMap]);
+
+  // Saturn's ring texture is a radial strip — remap ring UVs so u runs
+  // from the inner edge to the outer edge.
+  const saturnRingGeom = useMemo(() => {
+    const inner = 12.5;
+    const outer = 21;
+    const geo = new THREE.RingGeometry(inner, outer, 96, 1);
+    const pos = geo.attributes.position;
+    const uv = geo.attributes.uv;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const r = Math.hypot(v.x, v.y);
+      uv.setXY(i, (r - inner) / (outer - inner), 0.5);
+    }
+    return geo;
   }, []);
 
   return (
     <group>
       <mesh
         geometry={sphereGeom}
-        material={mats.navy}
-        position={[60, 25, -120]}
+        material={mats.mars}
+        position={[86, 38, -158]}
         scale={10}
+        rotation={[0.1, 1.4, 0.05]}
       />
-      {/* Saturn-ish brown planet with a simple ring */}
-      <group position={[-70, -15, -160]} rotation={[1.05, 0.2, 0.35]}>
-        <mesh geometry={sphereGeom} material={mats.brown} scale={9} />
-        <mesh material={mats.ring} rotation-x={-Math.PI / 2} renderOrder={2}>
-          <ringGeometry args={[12.5, 19, 64]} />
-        </mesh>
+      {/* Saturn with its real ring — well clear of Earth from the hero view */}
+      <group position={[-112, -34, -200]} rotation={[1.05, 0.2, 0.35]}>
+        <mesh geometry={sphereGeom} material={mats.saturn} scale={9} />
+        <mesh
+          geometry={saturnRingGeom}
+          material={mats.ring}
+          rotation-x={-Math.PI / 2}
+          renderOrder={2}
+        />
       </group>
       <mesh
         geometry={sphereGeom}
-        material={mats.slate}
-        position={[45, -20, -230]}
+        material={mats.jupiter}
+        position={[58, -26, -248]}
         scale={8}
       />
       <mesh
         geometry={sphereGeom}
         material={mats.gray}
-        position={[-55, 30, -260]}
+        position={[-70, 38, -280]}
         scale={14}
       />
-      {/* Foreground dark moon in the hero corridor */}
+      {/* Foreground moon in the hero corridor */}
       <mesh
         geometry={sphereGeom}
         material={mats.moon}
-        position={[14, -6, -18]}
-        scale={1.6}
+        position={[19, -8.5, -26]}
+        scale={1.1}
+        rotation={[0.3, 2.1, 0]}
       />
     </group>
   );

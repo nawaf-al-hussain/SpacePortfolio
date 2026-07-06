@@ -224,7 +224,7 @@ export default function SectionOverlays() {
         <div
           ref={contactRef}
           style={HIDDEN}
-          className="glass hud-corners pointer-events-auto mr-8 w-[460px] max-w-[calc(100vw-4rem)] rounded-2xl p-8 lg:mr-16"
+          className="glass hud-corners pointer-events-auto mr-8 w-[460px] max-w-[calc(100vw-4rem)] rounded-2xl p-8 lg:mr-24"
         >
           <Kicker>04 // Transmission</Kicker>
           <h2 className="mt-2 font-display text-[38px] font-bold leading-[1.05] text-star">

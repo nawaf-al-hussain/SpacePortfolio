@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import { Environment } from "@react-three/drei";
 import {
   Bloom,
   ChromaticAberration,
@@ -16,6 +17,7 @@ import Planets from "./Planets";
 import SpaceEnvironment from "./SpaceEnvironment";
 import SkillCards from "./SkillCards";
 import ProjectOrbit from "./ProjectOrbit";
+import SetDressing from "./SetDressing";
 
 function SceneReady() {
   const setReady = useUIStore((s) => s.setReady);
@@ -50,12 +52,19 @@ export default function Experience() {
           <ambientLight intensity={0.4} />
           <directionalLight position={[30, 20, 10]} intensity={1.1} color="#dfe8ff" />
 
+          {/* Local HDRI for PBR reflections — no network fetch */}
+          <Environment
+            files="/hdri/dikhololo_night_1k.hdr"
+            environmentIntensity={0.5}
+          />
+
           <CameraRig />
           <SpaceEnvironment />
           <Rocket />
           <Planets />
           <SkillCards />
           <ProjectOrbit />
+          <SetDressing />
 
           <EffectComposer>
             <Bloom
@@ -64,7 +73,7 @@ export default function Experience() {
               luminanceSmoothing={0.9}
               mipmapBlur
             />
-            <ChromaticAberration offset={[0.0008, 0.0008]} />
+            <ChromaticAberration offset={[0.0004, 0.0004]} />
             <Vignette eskil={false} offset={0.18} darkness={0.82} />
           </EffectComposer>
 
