@@ -16,13 +16,12 @@ import { useUIStore } from "@/lib/store";
 import {
   makeGlowTexture,
   makeProjectCardTexture,
-  makeTextTexture,
 } from "@/lib/textures";
 
 /**
- * The interactive centerpiece: the 5 projects orbiting inside the projects
- * planet's ring like satellites — fake website screenshots that billboard
- * to the camera, glow on hover, and open the detail modal on click.
+ * The interactive centerpiece: the projects orbiting inside the ring like
+ * satellites — minimal HUD panels that billboard to the camera, glow on
+ * hover, and open the detail modal on click.
  */
 
 /* ------------------------------------------------------------------ */
@@ -33,7 +32,6 @@ const CARD_W = 4.8;
 const CARD_H = 3.0;
 const GLOW_W = 5.0;
 const GLOW_H = 3.2;
-const CHIP_W = 3.3;
 
 const CAROUSEL_SPEED = 0.018; // rad/s
 const HOVER_SCALE = 1.14;
@@ -74,10 +72,9 @@ type CardProps = {
   index: number;
   cardGeo: THREE.PlaneGeometry;
   glowGeo: THREE.PlaneGeometry;
-  chipGeo: THREE.PlaneGeometry;
 };
 
-function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
+function ProjectCard({ project, index, cardGeo, glowGeo }: CardProps) {
   const billboardRef = useRef<THREE.Group>(null);
   const alphaRef = useRef(0);
   const targets = useRef({ scale: 1, glow: GLOW_BASE });
@@ -89,10 +86,9 @@ function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
   const radius = LANE_RADIUS[lane];
   const yOff = LANE_Y[lane];
 
-  const { cardMat, glowMat, chipMat, chipAspect } = useMemo(() => {
+  const { cardMat, glowMat } = useMemo(() => {
     const cardTex = makeProjectCardTexture(project);
     const glowTex = makeGlowTexture(hexToRgba(project.colorA, 0.5));
-    const chip = makeTextTexture(project.title, { size: 120 });
 
     const cardMat = new THREE.MeshBasicMaterial({
       map: cardTex,
@@ -109,27 +105,17 @@ function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
       blending: THREE.AdditiveBlending,
       opacity: 0,
     });
-    const chipMat = new THREE.MeshBasicMaterial({
-      map: chip.texture,
-      transparent: true,
-      toneMapped: false,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      opacity: 0,
-    });
-    return { cardMat, glowMat, chipMat, chipAspect: chip.aspect };
+    return { cardMat, glowMat };
   }, [project]);
 
   useEffect(() => {
     return () => {
       cardMat.map?.dispose();
       glowMat.map?.dispose();
-      chipMat.map?.dispose();
       cardMat.dispose();
       glowMat.dispose();
-      chipMat.dispose();
     };
-  }, [cardMat, glowMat, chipMat]);
+  }, [cardMat, glowMat]);
 
   useFrame((state, delta) => {
     const bb = billboardRef.current;
@@ -164,7 +150,6 @@ function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
 
     cardMat.opacity = alpha;
     glowMat.opacity = glowCurrent.current * alpha;
-    chipMat.opacity = alpha * 0.85;
   });
 
   const onPointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -207,13 +192,6 @@ function ProjectCard({ project, index, cardGeo, glowGeo, chipGeo }: CardProps) {
           onPointerOut={onPointerOut}
           onClick={onClick}
         />
-        <mesh
-          geometry={chipGeo}
-          material={chipMat}
-          position={[0, -1.95, 0.02]}
-          scale={[CHIP_W, CHIP_W / chipAspect, 1]}
-          renderOrder={19}
-        />
       </group>
     </group>
   );
@@ -237,11 +215,10 @@ export default function ProjectOrbit() {
   const carouselRef = useRef<THREE.Group>(null);
   const satRefs = useRef<(THREE.Mesh | null)[]>([null, null]);
 
-  const { cardGeo, glowGeo, chipGeo, satGeo, satMat } = useMemo(() => {
+  const { cardGeo, glowGeo, satGeo, satMat } = useMemo(() => {
     return {
       cardGeo: new THREE.PlaneGeometry(CARD_W, CARD_H),
       glowGeo: new THREE.PlaneGeometry(GLOW_W, GLOW_H),
-      chipGeo: new THREE.PlaneGeometry(1, 1),
       satGeo: new THREE.BoxGeometry(0.3, 0.3, 0.3),
       satMat: new THREE.MeshStandardMaterial({
         color: "#0a1220",
@@ -260,11 +237,10 @@ export default function ProjectOrbit() {
     return () => {
       cardGeo.dispose();
       glowGeo.dispose();
-      chipGeo.dispose();
       satGeo.dispose();
       satMat.dispose();
     };
-  }, [cardGeo, glowGeo, chipGeo, satGeo, satMat]);
+  }, [cardGeo, glowGeo, satGeo, satMat]);
 
   useFrame((state, delta) => {
     const root = rootRef.current;
@@ -318,7 +294,6 @@ export default function ProjectOrbit() {
             index={i}
             cardGeo={cardGeo}
             glowGeo={glowGeo}
-            chipGeo={chipGeo}
           />
         ))}
       </group>

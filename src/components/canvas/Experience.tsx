@@ -1,6 +1,6 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import {
   Bloom,
@@ -19,13 +19,61 @@ import SkillCards from "./SkillCards";
 import ProjectOrbit from "./ProjectOrbit";
 import SetDressing from "./SetDressing";
 
+/**
+ * Primes the GPU behind the loading screen: compiles every shader program
+ * and uploads every texture before the loader lifts. Without this, gated
+ * objects (ISS, skill cards, project cards) compile/upload on the frame
+ * they first appear — a visible hitch mid-scroll.
+ */
 function SceneReady() {
   const setReady = useUIStore((s) => s.setReady);
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
+
   useEffect(() => {
-    // First commit of the scene tree — release the loader next frame
-    const id = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(id);
-  }, [setReady]);
+    let alive = true;
+
+    const collectTextures = (mat: THREE.Material): THREE.Texture[] => {
+      const out: THREE.Texture[] = [];
+      for (const value of Object.values(mat)) {
+        if ((value as THREE.Texture)?.isTexture) out.push(value as THREE.Texture);
+      }
+      const uniforms = (mat as THREE.ShaderMaterial).uniforms;
+      if (uniforms) {
+        for (const u of Object.values(uniforms)) {
+          if ((u?.value as THREE.Texture)?.isTexture) out.push(u.value as THREE.Texture);
+        }
+      }
+      return out;
+    };
+
+    const prime = async () => {
+      try {
+        await gl.compileAsync(scene, camera);
+        scene.traverse((o) => {
+          const mesh = o as THREE.Mesh;
+          if (!mesh.isMesh && !(o as THREE.Sprite).isSprite) return;
+          const mats = Array.isArray(mesh.material)
+            ? mesh.material
+            : [mesh.material];
+          for (const mat of mats) {
+            if (!mat) continue;
+            for (const tex of collectTextures(mat)) gl.initTexture(tex);
+          }
+        });
+      } catch {
+        // Priming is best-effort — never block the site on it
+      }
+      if (alive) setReady(true);
+    };
+
+    prime();
+    return () => {
+      alive = false;
+    };
+  }, [gl, scene, camera, setReady]);
+
   return null;
 }
 

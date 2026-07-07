@@ -54,6 +54,7 @@ export default function Loader() {
   const ready = useUIStore((s) => s.ready);
   const [minElapsed, setMinElapsed] = useState(false);
   const [forced, setForced] = useState(false);
+  const [gone, setGone] = useState(false);
 
   useEffect(() => {
     const a = window.setTimeout(() => setMinElapsed(true), MIN_SHOW_MS);
@@ -66,6 +67,16 @@ export default function Loader() {
 
   const complete = ready || forced;
   const hidden = (ready && minElapsed) || forced;
+
+  // Hard unmount fallback: the exit fade is rAF-driven and freezes in
+  // background tabs — this timeout guarantees the overlay is removed.
+  useEffect(() => {
+    if (!hidden) return;
+    const t = window.setTimeout(() => setGone(true), 1000);
+    return () => window.clearTimeout(t);
+  }, [hidden]);
+
+  if (gone) return null;
 
   return (
     <AnimatePresence>

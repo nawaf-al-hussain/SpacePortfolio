@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { CSSProperties, FormEvent, ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ARCHIVE_URL, EXPERIENCE, PROFILE, PROJECTS } from "@/lib/data";
 import { useScrollRaf } from "@/lib/scroll";
@@ -58,12 +58,6 @@ function Kicker({ children }: { children: ReactNode }) {
     </p>
   );
 }
-
-const inputClass =
-  "w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-sm text-star placeholder:text-white/25 outline-none transition-[border-color,box-shadow] duration-200 focus:border-cyan focus:shadow-[0_0_16px_rgba(76,201,240,0.25)]";
-
-const labelClass =
-  "mb-1.5 block font-mono text-[10px] uppercase tracking-[0.22em] text-white/50";
 
 const CONTACT_COPY =
   "I'm currently open to new opportunities — full-time, contract, or just a good chat. Whether you have a project idea, a question, or you just want to say hi, my inbox is the best way to reach me.";
@@ -125,52 +119,41 @@ export default function SectionOverlays() {
     ? (PROJECTS.find((pr) => pr.id === hoveredId) ?? null)
     : null;
 
-  /* ---------------- contact form ---------------- */
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
-
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const subject = encodeURIComponent(
-      `Mission inquiry from ${name || "a visitor"}`
-    );
-    const body = encodeURIComponent(
-      `${message}\n\n— ${name}${email ? ` (${email})` : ""}`
-    );
-    window.location.href = `mailto:${PROFILE.email}?subject=${subject}&body=${body}`;
-    setSent(true);
-  };
-
   return (
     <div className="pointer-events-none fixed inset-0 z-10">
       {/* ============ 01 // ABOUT ============ */}
       <div className="absolute inset-y-0 left-0 flex items-center">
         <div
           ref={aboutRef}
-          style={HIDDEN}
-          className="glass hud-corners ml-8 w-[440px] max-w-[calc(100vw-4rem)] rounded-2xl p-8 lg:ml-16"
+          style={{
+            ...HIDDEN,
+            background:
+              "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
+            boxShadow:
+              "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+            backdropFilter: "blur(18px)",
+          }}
+          className="hud-corners ml-8 w-[470px] max-w-[calc(100vw-4rem)] rounded-2xl border border-hud/25 p-8 lg:ml-16"
         >
           <Kicker>01 // About</Kicker>
           <h2 className="mt-3 font-display text-[40px] font-bold leading-[1.05] text-star">
             Full stack, fewer <span className="text-cyan">bottlenecks</span>
           </h2>
-          <p className="mt-5 text-[15px] leading-relaxed text-white/70">
+          <p className="mt-5 text-[15px] leading-relaxed text-white/85">
             {PROFILE.about.lead}
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-white/50">
+          <p className="mt-4 text-sm leading-relaxed text-white/75">
             {PROFILE.about.p2}
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-white/50">
+          <p className="mt-4 text-sm leading-relaxed text-white/75">
             {PROFILE.about.p3}
           </p>
           <div className="hud-line mt-6" />
-          <ul className="mt-5 space-y-1.5">
+          <ul className="mt-5 space-y-2">
             {PROFILE.about.credentials.map((cred) => (
               <li
                 key={cred}
-                className="font-mono text-[11px] uppercase tracking-wide text-star/70"
+                className="font-mono text-xs uppercase tracking-wide text-star/85"
               >
                 <span className="text-cyan">▹</span> {cred}
               </li>
@@ -183,8 +166,15 @@ export default function SectionOverlays() {
       <div className="absolute inset-y-0 right-0 flex items-center">
         <div
           ref={experienceRef}
-          style={HIDDEN}
-          className="glass hud-corners pointer-events-auto mr-8 w-[520px] max-w-[calc(100vw-4rem)] rounded-2xl p-7 lg:mr-24"
+          style={{
+            ...HIDDEN,
+            background:
+              "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
+            boxShadow:
+              "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+            backdropFilter: "blur(18px)",
+          }}
+          className="hud-corners pointer-events-auto mr-8 w-[560px] max-w-[calc(100vw-4rem)] rounded-2xl border border-hud/25 p-8 lg:mr-24"
         >
           <Kicker>02 // Where I&apos;ve worked</Kicker>
 
@@ -195,10 +185,10 @@ export default function SectionOverlays() {
                 type="button"
                 data-cursor="hover"
                 onClick={() => setActiveJob(i)}
-                className={`rounded-full border px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] transition-colors ${
+                className={`rounded-full border px-5 py-2 font-mono text-xs uppercase tracking-[0.14em] transition-colors ${
                   i === activeJob
-                    ? "border-cyan bg-cyan/10 text-cyan"
-                    : "border-white/15 text-star/60 hover:text-star"
+                    ? "border-cyan bg-cyan/15 text-cyan-bright shadow-[0_0_14px_rgba(76,201,240,0.25)]"
+                    : "border-white/20 text-star/70 hover:border-white/40 hover:text-star"
                 }`}
               >
                 {j.company.split(" ")[0]}
@@ -206,15 +196,17 @@ export default function SectionOverlays() {
             ))}
           </div>
 
-          <h3 className="mt-5 font-display text-xl font-bold text-white">
+          <h3 className="mt-5 font-display text-[22px] font-bold leading-snug text-white">
             {job.title} <span className="text-cyan">@ {job.company}</span>
           </h3>
-          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-star/50">
+          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-hud/90">
             {job.range} · {job.location}
           </p>
-          <p className="mt-3 text-sm leading-relaxed text-white/60">
+          <p className="mt-3 text-[15px] leading-relaxed text-white/85">
             {job.blurb}
           </p>
+
+          <div className="hud-line mt-4" />
 
           <ul
             key={activeJob}
@@ -223,14 +215,14 @@ export default function SectionOverlays() {
               scrollbarWidth: "thin",
               scrollbarColor: "rgba(76,201,240,0.35) transparent",
             }}
-            className="mt-4 max-h-[280px] space-y-2.5 overflow-y-auto pr-2"
+            className="mt-4 max-h-[300px] space-y-3 overflow-y-auto pr-2"
           >
             {job.points.map((point) => (
               <li
                 key={point}
-                className="flex gap-2.5 text-[13px] leading-relaxed text-white/60"
+                className="flex gap-3 text-sm leading-relaxed text-white/80"
               >
-                <span className="shrink-0 text-cyan">▹</span>
+                <span className="mt-0.5 shrink-0 text-cyan">▹</span>
                 <span>{point}</span>
               </li>
             ))}
@@ -307,89 +299,36 @@ export default function SectionOverlays() {
       <div className="absolute inset-y-0 right-0 flex items-center">
         <div
           ref={contactRef}
-          style={HIDDEN}
-          className="glass hud-corners pointer-events-auto mr-8 w-[460px] max-w-[calc(100vw-4rem)] rounded-2xl p-8 lg:mr-24"
+          style={{
+            ...HIDDEN,
+            background:
+              "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
+            boxShadow:
+              "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+            backdropFilter: "blur(18px)",
+          }}
+          className="hud-corners pointer-events-auto mr-8 w-[460px] max-w-[calc(100vw-4rem)] rounded-2xl border border-hud/25 p-8 lg:mr-24"
         >
           <Kicker>04 // What&apos;s next</Kicker>
           <h2 className="mt-2 font-display text-[34px] font-bold leading-[1.08] text-star">
             Let&apos;s make something{" "}
             <span className="text-cyan">together</span>.
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/60">
+          <p className="mt-4 text-[15px] leading-relaxed text-white/80">
             {CONTACT_COPY}
           </p>
 
+          {/* No backend, no forms — straight to the inbox */}
           <a
             href={`mailto:${PROFILE.email}`}
             data-cursor="hover"
-            className="mt-4 inline-block font-display text-lg font-semibold text-cyan transition-colors hover:text-cyan-bright"
+            className="mt-7 block w-full rounded-full bg-gradient-to-r from-cyan to-nebula py-3.5 text-center font-display text-lg font-semibold tracking-wide text-space transition hover:brightness-110 active:scale-[0.98]"
           >
             {PROFILE.email} →
           </a>
-
-          <form onSubmit={onSubmit} className="mt-5 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="tx-name" className={labelClass}>
-                  Callsign / Name
-                </label>
-                <input
-                  id="tx-name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Jane Doe"
-                  className={inputClass}
-                  data-cursor="hover"
-                />
-              </div>
-              <div>
-                <label htmlFor="tx-email" className={labelClass}>
-                  Return signal / Email
-                </label>
-                <input
-                  id="tx-email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@galaxy.dev"
-                  className={inputClass}
-                  data-cursor="hover"
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="tx-message" className={labelClass}>
-                Message payload
-              </label>
-              <textarea
-                id="tx-message"
-                required
-                rows={4}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Tell me about the mission…"
-                className={`${inputClass} resize-none`}
-                data-cursor="hover"
-              />
-            </div>
-
-            {sent ? (
-              <p className="py-2 font-mono text-xs tracking-[0.14em] text-cyan">
-                {"// SIGNAL SENT — I'll respond within 24h"}
-              </p>
-            ) : (
-              <button
-                type="submit"
-                data-cursor="hover"
-                className="w-full rounded-full bg-gradient-to-r from-cyan to-nebula py-3 font-display font-semibold tracking-wide text-space transition hover:brightness-110 active:scale-[0.98]"
-              >
-                TRANSMIT MESSAGE ▸
-              </button>
-            )}
-          </form>
+          <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+            Opens your mail app — I reply within 24h
+          </p>
 
           <div className="hud-line mt-6" />
 
@@ -432,13 +371,9 @@ export default function SectionOverlays() {
                 </svg>
               </a>
             </div>
-            <a
-              href={`mailto:${PROFILE.email}`}
-              data-cursor="hover"
-              className="font-mono text-[11px] text-white/50 transition-colors hover:text-cyan"
-            >
-              {PROFILE.email}
-            </a>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+              GitHub · LinkedIn · Medium
+            </span>
           </div>
 
           <p className="mt-5 font-mono text-[10px] tracking-[0.14em] text-white/25">

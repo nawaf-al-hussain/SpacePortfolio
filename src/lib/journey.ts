@@ -87,8 +87,11 @@ const ROCKET_KEYS: RocketKey[] = [
   { p: 0.19, pos: [0, -0.3, -11] },
   { p: 0.26, pos: [-10, 2.5, -52] },
   { p: 0.33, pos: [-9, 3, -74] },
-  { p: 0.4, pos: [-5, -2, -88] },
-  { p: 0.47, pos: [-1, -3, -101] },
+  // Work section: swing wide left, under the station — keeps the rocket
+  // out from behind the experience panel on the right half of the screen
+  { p: 0.36, pos: [-13, 0.5, -80] },
+  { p: 0.4, pos: [-13, -2.5, -88] },
+  { p: 0.47, pos: [-10, -3.5, -102] },
   { p: 0.53, pos: [6, -2.8, -115] },
   { p: 0.6, pos: [7.5, -2, -146] },
   { p: 0.66, pos: [6, 2, -160] },

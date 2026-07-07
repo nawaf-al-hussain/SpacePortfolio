@@ -251,7 +251,9 @@ const LIGHT_DIR = new THREE.Vector3(1, 0.4, 0.6).normalize();
 function prepAlbedo(tex: THREE.Texture | THREE.Texture[]) {
   for (const t of Array.isArray(tex) ? tex : [tex]) {
     t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 8;
+    // Max anisotropy: kills the mip shimmer at grazing angles on the
+    // planet limbs (drivers clamp to the hardware cap)
+    t.anisotropy = 16;
     t.wrapS = THREE.RepeatWrapping;
     t.needsUpdate = true;
   }
@@ -466,7 +468,9 @@ function AboutPlanet() {
   return (
     <>
       <group position={ABOUT_PLANET.position} rotation={[0, 0, 0.41]}>
-        <mesh ref={planetRef} material={surfaceMat}>
+        {/* Initial spin puts India (≈78.9°E) at the sub-camera point of the
+            hero view — raycast-solved against the live transform chain. */}
+        <mesh ref={planetRef} material={surfaceMat} rotation={[0, 3.5823, 0]}>
           <sphereGeometry args={[ABOUT_PLANET.radius, 96, 96]} />
         </mesh>
         <mesh ref={cloudsRef} material={cloudMat} renderOrder={2}>

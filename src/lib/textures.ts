@@ -91,9 +91,9 @@ export function makeGlowTexture(
 /* ------------------------------------------------------------------ */
 
 /**
- * Fake "website screenshot" for the orbiting project cards — browser
- * chrome, gradient hero, headline bars and content blocks in the
- * project's palette.
+ * Orbiting project card — a clean, minimal HUD panel: meta line, big
+ * title, tagline, tech tags, and a thin brand-color accent. Matches the
+ * skill-module styling so the whole scene reads as one system.
  */
 export function makeProjectCardTexture(project: Project): THREE.CanvasTexture {
   // Drawn in 640x400 logical space at 2x physical resolution so titles
@@ -103,101 +103,74 @@ export function makeProjectCardTexture(project: Project): THREE.CanvasTexture {
   const { canvas, ctx } = makeCanvas(W * 2, H * 2);
   ctx.scale(2, 2);
 
-  const r = 18;
+  // Panel — near-opaque so it never fights the ring glow behind it
   ctx.beginPath();
-  ctx.roundRect(0, 0, W, H, r);
+  ctx.roundRect(5, 5, W - 10, H - 10, 26);
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, "rgba(16,22,44,0.97)");
+  bg.addColorStop(1, "rgba(7,10,22,0.97)");
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(154,220,255,0.55)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Brand accent — a slim gradient bar along the top edge
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(5, 5, W - 10, H - 10, 26);
   ctx.clip();
+  const accent = ctx.createLinearGradient(0, 0, W, 0);
+  accent.addColorStop(0, project.colorA);
+  accent.addColorStop(1, project.colorB);
+  ctx.fillStyle = accent;
+  ctx.fillRect(5, 5, W - 10, 10);
+  ctx.restore();
 
-  // Page background
-  ctx.fillStyle = "#0b0e1a";
-  ctx.fillRect(0, 0, W, H);
-
-  // Browser chrome
-  ctx.fillStyle = "#141829";
-  ctx.fillRect(0, 0, W, 44);
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.arc(26 + i * 22, 22, 6, 0, Math.PI * 2);
-    ctx.fillStyle = ["#ff5f57", "#febc2e", "#28c840"][i];
-    ctx.fill();
-  }
-  ctx.fillStyle = "#1e2338";
+  // Corner accent
+  ctx.strokeStyle = "#7df9ff";
+  ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.roundRect(110, 10, W - 220, 24, 12);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,0.4)";
-  ctx.font = `500 13px ${MONO_FONT}`;
-  ctx.textAlign = "center";
-  ctx.fillText("github.com/AbhishekBadar", W / 2, 27);
+  ctx.moveTo(5, 56);
+  ctx.lineTo(5, 40);
+  ctx.quadraticCurveTo(5, 17, 28, 17);
+  ctx.stroke();
 
-  // Hero gradient band
-  const grad = ctx.createLinearGradient(0, 44, W, 220);
-  grad.addColorStop(0, project.colorA);
-  grad.addColorStop(1, project.colorB);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 44, W, 176);
-
-  // Decorative orbits on the hero
-  ctx.strokeStyle = "rgba(255,255,255,0.25)";
-  ctx.lineWidth = 1.5;
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.ellipse(W - 120, 130, 60 + i * 28, 24 + i * 12, -0.35, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.beginPath();
-  ctx.arc(W - 120, 130, 18, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Headline on hero
+  // Meta line
   ctx.textAlign = "left";
+  ctx.fillStyle = "rgba(154,220,255,0.9)";
+  ctx.font = `500 20px ${MONO_FONT}`;
+  ctx.fillText(project.meta.toUpperCase(), 40, 76);
+
+  // Featured star, top-right
+  if (project.featured) {
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#ffd166";
+    ctx.font = `600 22px ${MONO_FONT}`;
+    ctx.fillText("★ FEATURED", W - 40, 76);
+    ctx.textAlign = "left";
+  }
+
+  // Title — the hero of the card, up to two lines
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 34px ${DISPLAY_FONT}`;
-  ctx.fillText(project.title, 36, 120);
-  ctx.font = `400 17px ${DISPLAY_FONT}`;
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.fillText(project.tagline, 36, 152);
+  ctx.shadowColor = "rgba(76,201,240,0.3)";
+  ctx.shadowBlur = 8;
+  ctx.font = `700 54px ${DISPLAY_FONT}`;
+  wrapText(ctx, project.title, 40, 156, W - 90, 62);
+  ctx.shadowBlur = 0;
 
-  // CTA pill
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.beginPath();
-  ctx.roundRect(36, 172, 120, 30, 15);
-  ctx.fill();
-  ctx.fillStyle = "#0b0e1a";
-  ctx.font = `600 14px ${DISPLAY_FONT}`;
-  ctx.fillText("Explore →", 58, 192);
+  // Tagline
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.font = `400 26px ${DISPLAY_FONT}`;
+  wrapText(ctx, project.tagline, 40, 268, W - 90, 34);
 
-  // Content blocks below hero
-  const rows = [
-    [36, 250, 260, 12],
-    [36, 274, 220, 12],
-    [36, 298, 240, 12],
-  ] as const;
-  ctx.fillStyle = "rgba(255,255,255,0.16)";
-  for (const [x, y, w, h] of rows) {
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, 6);
-    ctx.fill();
-  }
-  // Cards row
-  for (let i = 0; i < 3; i++) {
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
-    ctx.beginPath();
-    ctx.roundRect(330 + i * 96, 244, 84, 110, 10);
-    ctx.fill();
-    const cg = ctx.createLinearGradient(0, 244, 0, 300);
-    cg.addColorStop(0, project.colorB + "66");
-    cg.addColorStop(1, "transparent");
-    ctx.fillStyle = cg;
-    ctx.beginPath();
-    ctx.roundRect(330 + i * 96, 244, 84, 44, 10);
-    ctx.fill();
-  }
-  ctx.fillStyle = "rgba(255,255,255,0.12)";
-  ctx.beginPath();
-  ctx.roundRect(36, 330, 180, 40, 10);
-  ctx.fill();
+  // Tech tags — simple mono row in brand color
+  const tagGrad = ctx.createLinearGradient(0, 0, W, 0);
+  tagGrad.addColorStop(0, project.colorB);
+  tagGrad.addColorStop(1, "#7df9ff");
+  ctx.fillStyle = tagGrad;
+  ctx.font = `600 21px ${MONO_FONT}`;
+  wrapText(ctx, project.tags.join(" · ").toUpperCase(), 40, 344, W - 90, 30);
 
   return toTexture(canvas);
 }

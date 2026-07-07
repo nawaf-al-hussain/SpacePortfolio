@@ -5,6 +5,7 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { SKILLS, type Skill } from "@/lib/data";
+import { scrollState } from "@/lib/scroll";
 import { makeGlowTexture, makeSkillCardTexture } from "@/lib/textures";
 
 /**
@@ -108,11 +109,14 @@ function Card({ skill, position, side, plane, glowTex }: CardProps) {
     if (!g) return;
     const dt = Math.min(delta, 0.05);
 
-    // Distance-based reveal: fade in while approaching, hold, fade once passed
+    // Distance-based reveal gated to the skills section, so cards never
+    // bleed into the experience panel's window
     const dz = position[2] - state.camera.position.z;
+    const p = scrollState.progress;
     const alpha =
       THREE.MathUtils.smoothstep(dz, -46, -20) *
-      (1 - THREE.MathUtils.smoothstep(dz, 4, 12));
+      (1 - THREE.MathUtils.smoothstep(dz, 4, 12)) *
+      THREE.MathUtils.smoothstep(p, 0.48, 0.52);
 
     const visible = alpha > 0.004;
     g.visible = visible;
@@ -139,11 +143,12 @@ function Card({ skill, position, side, plane, glowTex }: CardProps) {
 
     if (!visible) return;
 
-    // Lazy billboard: slerp toward camera-facing, keeping slight variance
+    // Billboard: track camera-facing tightly so the panel is never read
+    // at a glancing (blurring) angle
     g.getWorldPosition(_wPos);
     _mat4.lookAt(state.camera.position, _wPos, UP);
     _qTarget.setFromRotationMatrix(_mat4);
-    g.quaternion.slerp(_qTarget, 1 - Math.exp(-5 * dt)); // ~0.08 @ 60fps
+    g.quaternion.slerp(_qTarget, 1 - Math.exp(-10 * dt));
   });
 
   const onOver = (e: ThreeEvent<PointerEvent>) => {
@@ -156,7 +161,7 @@ function Card({ skill, position, side, plane, glowTex }: CardProps) {
 
   return (
     <group position={position}>
-      <Float speed={1.6} rotationIntensity={0.25} floatIntensity={0.9}>
+      <Float speed={1.6} rotationIntensity={0.1} floatIntensity={0.9}>
         <group ref={inner}>
           {/* Soft additive backlight */}
           <mesh
