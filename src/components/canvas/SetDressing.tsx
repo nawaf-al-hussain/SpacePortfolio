@@ -17,8 +17,8 @@ import { makeGlowTexture, makeTextTexture } from "@/lib/textures";
 
 useGLTF.preload("/models/astronaut.glb");
 useGLTF.preload("/models/spaceship.glb");
-// NASA IGOAL ISS — draco-compressed; decoder self-hosted in /public/draco
-useGLTF.preload("/models/iss.glb", "/draco/");
+// NASA IGOAL ISS — meshopt-compressed; drei decodes it built-in
+useGLTF.preload("/models/iss.glb");
 
 /* Spaceship flyby path (world space) — stays far from the camera corridor */
 const SHIP_FROM = new THREE.Vector3(70, 18, -190);
@@ -146,7 +146,7 @@ function ShipFlyby() {
 function WorkStation() {
   const groupRef = useRef<THREE.Group>(null);
   const spinRef = useRef<THREE.Group>(null);
-  const { scene: issScene } = useGLTF("/models/iss.glb", "/draco/");
+  const { scene: issScene } = useGLTF("/models/iss.glb");
 
   // Compute the recenter offset without mutating or reparenting the GLTF
   // scene (both break under Strict Mode's double-invoked memos). The

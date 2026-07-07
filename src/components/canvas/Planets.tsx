@@ -263,16 +263,16 @@ function prepAlbedo(tex: THREE.Texture | THREE.Texture[]) {
   }
 }
 
-useTexture.preload("/textures/4k_earth_daymap.jpg");
-useTexture.preload("/textures/4k_earth_nightmap.jpg");
-useTexture.preload("/textures/4k_earth_clouds.jpg");
-useTexture.preload("/textures/2k_mars.jpg");
-useTexture.preload("/textures/2k_neptune.jpg");
-useTexture.preload("/textures/4k_sun.jpg");
-useTexture.preload("/textures/2k_saturn.jpg");
+useTexture.preload("/textures/4k_earth_daymap.webp");
+useTexture.preload("/textures/4k_earth_nightmap.webp");
+useTexture.preload("/textures/4k_earth_clouds.webp");
+useTexture.preload("/textures/2k_mars.webp");
+useTexture.preload("/textures/2k_neptune.webp");
+useTexture.preload("/textures/4k_sun.webp");
+useTexture.preload("/textures/2k_saturn.webp");
 useTexture.preload("/textures/2k_saturn_ring_alpha.png");
-useTexture.preload("/textures/2k_jupiter.jpg");
-useTexture.preload("/textures/2k_moon.jpg");
+useTexture.preload("/textures/2k_jupiter.webp");
+useTexture.preload("/textures/2k_moon.webp");
 
 const smoothstep = THREE.MathUtils.smoothstep;
 
@@ -398,9 +398,9 @@ function AboutPlanet() {
 
   const [dayMap, nightMap, cloudMap] = useTexture(
     [
-      "/textures/4k_earth_daymap.jpg",
-      "/textures/4k_earth_nightmap.jpg",
-      "/textures/4k_earth_clouds.jpg",
+      "/textures/4k_earth_daymap.webp",
+      "/textures/4k_earth_nightmap.webp",
+      "/textures/4k_earth_clouds.webp",
     ],
     prepAlbedo
   );
@@ -510,7 +510,7 @@ function AboutPlanet() {
 function ProjectsPlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
 
-  const neptuneMap = useTexture("/textures/2k_neptune.jpg", prepAlbedo);
+  const neptuneMap = useTexture("/textures/2k_neptune.webp", prepAlbedo);
 
   const surfaceMat = useMemo(
     () =>
@@ -595,7 +595,7 @@ function ProjectsPlanet() {
 /* ------------------------------------------------------------------ */
 
 function ContactSun() {
-  const sunTex = useTexture("/textures/4k_sun.jpg", prepAlbedo);
+  const sunTex = useTexture("/textures/4k_sun.webp", prepAlbedo);
 
   const sunMat = useMemo(
     () =>
@@ -712,11 +712,11 @@ function BackgroundPlanets() {
 
   const [saturnMap, saturnRingMap, jupiterMap, moonMap, marsMap] = useTexture(
     [
-      "/textures/2k_saturn.jpg",
+      "/textures/2k_saturn.webp",
       "/textures/2k_saturn_ring_alpha.png",
-      "/textures/2k_jupiter.jpg",
-      "/textures/2k_moon.jpg",
-      "/textures/2k_mars.jpg",
+      "/textures/2k_jupiter.webp",
+      "/textures/2k_moon.webp",
+      "/textures/2k_mars.webp",
     ],
     prepAlbedo
   );
