@@ -1,6 +1,6 @@
 "use client";
 
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import {
   Bloom,
@@ -8,8 +8,11 @@ import {
   EffectComposer,
   Vignette,
 } from "@react-three/postprocessing";
-import { Suspense, useEffect } from "react";
+import type { BloomEffect, ChromaticAberrationEffect } from "postprocessing";
+import { Suspense, useEffect, useRef } from "react";
 import * as THREE from "three";
+import { impactProgress } from "@/lib/journey";
+import { scrollState } from "@/lib/scroll";
 import { useUIStore } from "@/lib/store";
 import CameraRig from "./CameraRig";
 import Rocket from "./Rocket";
@@ -18,6 +21,7 @@ import SpaceEnvironment from "./SpaceEnvironment";
 import SkillCards from "./SkillCards";
 import ProjectOrbit from "./ProjectOrbit";
 import SetDressing from "./SetDressing";
+import SunImpact from "./SunImpact";
 
 /**
  * Primes the GPU behind the loading screen: compiles every shader program
@@ -77,13 +81,54 @@ function SceneReady() {
   return null;
 }
 
+/**
+ * Surges bloom + chromatic aberration at the moment of the sun impact —
+ * the "the lens can't handle it" flare that sells a cinematic blast.
+ * Restores the calm baseline everywhere else.
+ */
+function ImpactPostSurge({
+  bloom,
+  chroma,
+}: {
+  bloom: React.RefObject<BloomEffect | null>;
+  chroma: React.RefObject<ChromaticAberrationEffect | null>;
+}) {
+  useFrame(() => {
+    const e = impactProgress(scrollState.progress);
+    const surge = e * (1 - e) * 4; // peaks mid-blast, zero at rest
+    if (bloom.current) bloom.current.intensity = 0.95 + surge * 1.4;
+    // ChromaticAberration.offset may be a Vector2 or the raw [x,y] array
+    // depending on how the prop was supplied — mutate whichever it is.
+    const off = chroma.current?.offset as
+      | THREE.Vector2
+      | [number, number]
+      | undefined;
+    if (off) {
+      const o = 0.0004 + surge * 0.006;
+      if (Array.isArray(off)) {
+        off[0] = o;
+        off[1] = o;
+      } else {
+        off.x = o;
+        off.y = o;
+      }
+    }
+  });
+  return null;
+}
+
 export default function Experience() {
+  const bloomRef = useRef<BloomEffect | null>(null);
+  const chromaRef = useRef<ChromaticAberrationEffect | null>(null);
+
   return (
     <div className="fixed inset-0 z-0" aria-hidden>
       <Canvas
         dpr={[1, 1.75]}
         gl={{
-          antialias: true,
+          // The EffectComposer renders via its own targets — canvas MSAA
+          // would only burn memory without touching the composed output
+          antialias: false,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.1,
           powerPreference: "high-performance",
@@ -123,18 +168,21 @@ export default function Experience() {
           <SkillCards />
           <ProjectOrbit />
           <SetDressing />
+          <SunImpact />
 
-          <EffectComposer>
+          <EffectComposer multisampling={4}>
             <Bloom
+              ref={bloomRef}
               intensity={0.95}
               luminanceThreshold={0.22}
               luminanceSmoothing={0.9}
               mipmapBlur
             />
-            <ChromaticAberration offset={[0.0004, 0.0004]} />
+            <ChromaticAberration ref={chromaRef} offset={[0.0004, 0.0004]} />
             <Vignette eskil={false} offset={0.18} darkness={0.82} />
           </EffectComposer>
 
+          <ImpactPostSurge bloom={bloomRef} chroma={chromaRef} />
           <SceneReady />
         </Suspense>
       </Canvas>

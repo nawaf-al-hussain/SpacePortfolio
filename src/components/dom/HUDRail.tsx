@@ -15,16 +15,23 @@ export default function HUDRail() {
   const altRef = useRef<HTMLSpanElement>(null);
   const velRef = useRef<HTMLSpanElement>(null);
   const secRef = useRef<HTMLSpanElement>(null);
-  const cache = useRef({ fill: "", alt: "", vel: "", sec: "" });
+  const cache = useRef({ fill: "", alt: "", vel: "", sec: "", lastText: 0 });
 
   useScrollRaf((p, v) => {
     const c = cache.current;
 
-    const fill = `${(p * 100).toFixed(1)}%`;
+    // Fill via transform — composited, never triggers layout
+    const fill = p.toFixed(4);
     if (fill !== c.fill && fillRef.current) {
       c.fill = fill;
-      fillRef.current.style.height = fill;
+      fillRef.current.style.transform = `scaleY(${fill})`;
     }
+
+    // Text readouts tick at ~8Hz like real telemetry — text mutations
+    // invalidate layout, so keep them off the per-frame path
+    const now = performance.now();
+    if (now - c.lastText < 120) return;
+    c.lastText = now;
 
     const alt = `ALT +${(p * 420).toFixed(1)} KM`;
     if (alt !== c.alt && altRef.current) {
@@ -52,8 +59,8 @@ export default function HUDRail() {
         {/* progress fill */}
         <div
           ref={fillRef}
-          className="absolute left-0 top-0 w-full bg-gradient-to-b from-cyan-bright via-cyan to-nebula shadow-[0_0_8px_rgba(76,201,240,0.7)]"
-          style={{ height: "0%" }}
+          className="absolute left-0 top-0 h-full w-full origin-top bg-gradient-to-b from-cyan-bright via-cyan to-nebula shadow-[0_0_8px_rgba(76,201,240,0.7)]"
+          style={{ transform: "scaleY(0)" }}
         />
 
         {/* section ticks */}

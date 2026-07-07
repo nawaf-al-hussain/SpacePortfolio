@@ -3,8 +3,11 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
-import { sampleCamera } from "@/lib/journey";
+import { impactProgress, sampleCamera } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
+
+/** Preallocated scratch for the impact recoil (zero per-frame allocation). */
+const _recoil = new THREE.Vector3();
 
 /**
  * Drives the camera along the journey path from scroll progress,
@@ -46,11 +49,23 @@ export default function CameraRig() {
     const v = Math.abs(scrollState.velocity);
     shake.current = THREE.MathUtils.damp(shake.current, Math.min(v * 6, 1), 4, dt);
     const t = state.clock.elapsedTime;
-    const s = shake.current * 0.06;
-    pos.current.x += Math.sin(t * 31.7) * s;
-    pos.current.y += Math.cos(t * 27.3) * s;
+    // Impact kick — a violent jolt right as the rocket rams the sun,
+    // strongest mid-blast and settling once the fireball dissipates.
+    const imp = impactProgress(scrollState.progress);
+    const impShake = imp * (1 - imp) * 4;
+    const s = shake.current * 0.06 + impShake * 0.11;
+    pos.current.x += Math.sin(t * 31.7) * s + Math.sin(t * 84) * impShake * 0.06;
+    pos.current.y += Math.cos(t * 27.3) * s + Math.cos(t * 77) * impShake * 0.06;
 
     cam.position.copy(pos.current);
+
+    // Recoil: the blast shoves the camera back along its view axis — a
+    // sharp punch at contact that eases out as the fireball rolls over.
+    const recoil = THREE.MathUtils.smoothstep(imp, 0.0, 0.12) * (1 - imp) * 2.6;
+    if (recoil > 0.001) {
+      _recoil.copy(cam.position).sub(tgt.current).normalize();
+      cam.position.addScaledVector(_recoil, recoil);
+    }
     cam.lookAt(tgt.current);
 
     const targetFov = fov + shake.current * 4;

@@ -46,6 +46,23 @@ export const CONTACT_SUN = {
   radius: 7,
 };
 
+/**
+ * Where the rocket rams the sun — the surface point on its incoming line.
+ * The finale explosion (SunImpact) anchors here and the rocket path ends here.
+ */
+export const IMPACT_POINT = new THREE.Vector3(24.7, 8.2, -256);
+
+/**
+ * Finale ramp: 0 until the rocket nears the sun, 1 once it has plunged in.
+ * Drives the rocket's disintegration, the explosion, and the sun flare.
+ */
+export function impactProgress(p: number): number {
+  // Plays over a wide scroll band so the detonation unfolds gradually as
+  // you scroll rather than firing all at once; completes a hair before the
+  // very end so it fully resolves even if the scroll settles short of 1.0.
+  return THREE.MathUtils.smoothstep(p, 0.88, 0.99);
+}
+
 /** Shared tilt for the projects ring plane + orbiting cards. */
 export const PROJECTS_RING_TILT = new THREE.Euler(0.45, 0, 0.08);
 
@@ -97,8 +114,11 @@ const ROCKET_KEYS: RocketKey[] = [
   { p: 0.66, pos: [6, 2, -160] },
   { p: 0.74, pos: [14, 4, -174] },
   { p: 0.8, pos: [15, 4, -213] },
-  { p: 0.9, pos: [16, 6, -240] },
-  { p: 1.0, pos: [19, 7, -248] },
+  { p: 0.85, pos: [17.5, 5.5, -234] },
+  // Final ram: reach the sun's surface (IMPACT_POINT) right as the blast
+  // ignites, then keep plunging deeper while the sun consumes the wreck.
+  { p: 0.89, pos: [24.7, 8.2, -256] },
+  { p: 1.0, pos: [26.8, 8.7, -259.5] },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -218,6 +238,7 @@ const _ahead = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _qPitch = new THREE.Quaternion();
 const _qFace = new THREE.Quaternion();
+const _qBank = new THREE.Quaternion();
 
 /**
  * Sample the rocket. Writes position + orientation, returns thrust ∈ [0,1].
@@ -273,18 +294,19 @@ export function sampleRocket(
   // plus a steady lean into the circle while lapping the planet.
   const uAhead = Math.min(u + 0.012, 1);
   rocketCurve.curve.getTangent(uAhead, _ahead);
-  const lateral = _ahead.clone().sub(_dir).dot(new THREE.Vector3(1, 0, 0));
+  // Lateral curvature = x-component of (ahead - dir); dot with (1,0,0)
+  const lateral = _ahead.x - _dir.x;
   const bank =
     THREE.MathUtils.clamp(-lateral * 18, -0.7, 0.7) * pitchT * (1 - ob) -
     0.38 * ob;
-  const qBank = new THREE.Quaternion().setFromAxisAngle(UP, bank);
-  outQuat.multiply(qBank);
+  _qBank.setFromAxisAngle(UP, bank);
+  outQuat.multiply(_qBank);
 
   // Thrust profile: cold on the pad, ignition through launch, cruise,
-  // then ease off on final approach.
+  // then a full-throttle kamikaze burn into the sun for the finale.
   const ignition = THREE.MathUtils.smoothstep(p, 0.09, 0.19);
-  const arrival = 1 - THREE.MathUtils.smoothstep(p, 0.93, 1.0) * 0.75;
-  return ignition * arrival;
+  const burn = 1 + THREE.MathUtils.smoothstep(p, 0.88, 0.97) * 0.6;
+  return ignition * burn;
 }
 
 /* ------------------------------------------------------------------ */

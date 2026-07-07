@@ -7,6 +7,7 @@ import * as THREE from "three";
 import {
   ABOUT_PLANET,
   CONTACT_SUN,
+  impactProgress,
   PROJECTS_PLANET,
   PROJECTS_RING_TILT,
   sectionProgress,
@@ -216,6 +217,7 @@ const RING_FRAG = /* glsl */ `
 const SUN_FRAG = /* glsl */ `
   uniform float uTime;
   uniform float uReveal;
+  uniform float uImpact;
   uniform sampler2D uMap;
   varying vec3 vPos;
   varying vec3 vWorldNormal;
@@ -237,6 +239,8 @@ const SUN_FRAG = /* glsl */ `
     col.b *= 0.75 + 0.25 * limb;
 
     col *= (0.45 + 0.55 * uReveal); // swells on approach (bloom picks up >1)
+    col *= 1.0 + uImpact * 0.7;     // flares white-hot when the rocket hits
+    col = mix(col, col + vec3(0.5, 0.35, 0.1), uImpact * 0.5);
     gl_FragColor = vec4(col, 1.0);
   }
 `;
@@ -601,6 +605,7 @@ function ContactSun() {
         uniforms: {
           uTime: { value: 0 },
           uReveal: { value: 0 },
+          uImpact: { value: 0 },
           uMap: { value: sunTex },
         },
       }),
@@ -656,11 +661,15 @@ function ContactSun() {
     connector.material.opacity = fadeContact(scrollState.progress) * 0.7;
     // Halo + light swell only as the voyage approaches the finale
     const rv = 0.12 + 0.88 * smoothstep(scrollState.progress, 0.62, 0.78);
+    // Impact flare: the sun brightens and its halo swells when rammed
+    const imp = impactProgress(scrollState.progress);
     sunMat.uniforms.uReveal.value = rv;
-    glowMats[0].opacity = 0.5 * rv;
-    glowMats[1].opacity = 0.3 * rv;
-    glowMats[2].opacity = 0.18 * rv;
-    if (lightRef.current) lightRef.current.intensity = 900 * rv;
+    sunMat.uniforms.uImpact.value = imp;
+    const flare = 1 + imp * 0.9;
+    glowMats[0].opacity = 0.5 * rv * flare;
+    glowMats[1].opacity = 0.3 * rv * flare;
+    glowMats[2].opacity = 0.18 * rv * flare;
+    if (lightRef.current) lightRef.current.intensity = 900 * rv * flare;
   });
 
   const r = CONTACT_SUN.radius;
