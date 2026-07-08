@@ -1,3 +1,6 @@
+/** Canonical origin — apex 307-redirects here, so www is the real home. */
+export const SITE_URL = "https://www.abhishekbadar.com";
+
 export const PROFILE = {
   name: "Abhishek Badar",
   firstName: "Abhishek",
@@ -25,7 +28,7 @@ export const PROFILE = {
   email: "ab15.badar@gmail.com",
   location: "Pune, India",
   resume: "/Resume_AbhishekBadar.pdf",
-  siteUrl: "https://abhishekbadar.dev/",
+  siteUrl: `${SITE_URL}/`,
   socials: {
     github: "https://github.com/AbhishekBadar",
     linkedin: "https://www.linkedin.com/in/abhishekbadar",

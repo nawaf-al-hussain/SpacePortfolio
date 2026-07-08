@@ -1,0 +1,93 @@
+# Abhishek Badar — Software Development Engineer
+
+> Software Development Engineer at Xeo Information Systems (Pune, India) building end-to-end web, mobile, and backend systems with React, Next.js, TypeScript, Laravel, and Flutter — plus AI in production (RAG with Pinecone, OCR workflows, and automation). IIT Ropar AI Minor graduate.
+
+- Name: Abhishek Badar
+- Role: Software Development Engineer
+- Location: Pune, India
+- Email: ab15.badar@gmail.com
+- Website: https://www.abhishekbadar.com
+- GitHub: https://github.com/AbhishekBadar
+- LinkedIn: https://www.linkedin.com/in/abhishekbadar
+- Medium: https://medium.com/@abhishekbadar
+
+## About
+
+I design and ship products end to end across web, mobile, backends, and the automation between them. At Xeo, I own the full stack: Laravel, Next.js, Flutter from zero. Plus AI in production: RAG with Pinecone, OCR workflows, and automation that cuts real operational drag.
+
+I work across the entire stack to reduce dependencies and move faster. I design APIs, build frontends, and develop mobile apps so products can be shipped without bottlenecks.
+
+At Xeo, I'm rebuilding a production Laravel system into a modern architecture while delivering a Flutter app from scratch — handling legacy code, performance constraints, and scalability challenges in real-world systems.
+
+I focus on building simple, fast, and maintainable systems — designed for actual usage, not just clean implementations.
+
+## Experience
+
+### Software Development Engineer I — Xeo Information Systems
+Mar 2025 — Present · Pune · Hybrid
+
+Leading a frontend replatform, building a Flutter app end-to-end, and designing the Laravel backend that serves both.
+
+- Migrating web frontend from Laravel Blade to Next.js (App Router) — scalable routing, reusable component patterns.
+- Built a reusable React data table abstraction replacing legacy Yajra DataTables — standardized pagination, sorting, server-side data.
+- Shipped complex form workflows using React Hook Form + Zod for type-safe validation.
+- Designed Laravel backend architecture serving web + mobile via RESTful APIs.
+- Built a Flutter app end-to-end for students & parents — fees, events, newsletters, bookings, push notifications. 500+ users.
+- HMAC-based request auth for mobile API security.
+- Payment gateway integration + admin dashboard for tracking, dues reports, receipts.
+- FCM push notifications with deep-link routing.
+
+### Associate Software Engineer — Refyne
+Aug 2024 — Feb 2025 · Bangalore · Full-time
+
+Built the internal CRM platform used by 150+ across sales, risk, and growth. Automated the boring parts.
+
+- Built an internal CRM on Firebase Auth + serverless architecture — 150+ active users across sales, risk, and growth.
+- Firestore data models for real-time deal tracking, activity logs, and threaded communication.
+- Two-way comment system synced with ClickUp and Postgres — bidirectional sync between CRM and task management.
+- Dashboards + search filters that cut data retrieval time by 60%; custom export-to-CSV for on-demand reports.
+- Migrated 50,000+ records from HubSpot to Firebase with validation and consistency checks (+30% query efficiency).
+- Automated cross-platform workflows (Slack, Gmail, ClickUp) via N8N — reduced ops overhead ~40%.
+- Automated user onboarding via Slack APIs + Firebase Admin SDK — cut onboarding from 30 min to under 5 min.
+- HR chatbot using Pinecone vector DB + LLMs, integrated with Slack (+40% internal support efficiency).
+- Resume ingestion + scoring pipeline: Google Drive, OCR, semantic matching against job descriptions.
+- Integrated Sentry for real-time error monitoring — debugging time down 50%.
+
+## Projects
+
+### DoSpaces Plugin (2025 · Open source)
+osTicket attachments, offloaded to the cloud. osTicket plugin that offloads ticket attachments to DigitalOcean Spaces with secure public-link generation — cut agent response time by 30%. Built with: PHP, DigitalOcean Spaces, REST.
+
+### twitter-autoposter (2026 · AI · Automation)
+A content pipeline that runs itself. End-to-end content pipeline: researches trending topics, generates posts with DeepSeek, queues them into Google Sheets, and routes through a Telegram approval bot. Runs daily on GitHub Actions. Built with: Python, DeepSeek, Telegram Bot, Google Sheets, GitHub Actions. https://github.com/AbhishekBadar/twitter-autoposter
+
+### Claude-Tracker (2026 · macOS · Swift)
+Never blow a quota mid-flow. Native menu-bar app that tracks Claude Code usage across weekly and 5-hour rolling windows. Built with: Swift, SwiftUI, macOS. https://github.com/AbhishekBadar/Claude-Tracker
+
+### Save Image As (2026 · Chrome extension · Live)
+2.46K+ installs, 1K+ active users. Chrome extension with intelligent file-naming suggestions and streamlined download management. 2.46K+ installs, 1K+ active users, 4.36K+ store page views. Built with: JavaScript, Chrome APIs, Manifest v3. https://chromewebstore.google.com/detail/save-image-as/bcngajhkkkhfalgljjjjbjacjcdlophj
+
+### PuzzleIT (2024 · Side project)
+Escape rooms in the browser. Web-based escape-room puzzle game with real-time collaboration. Engaged 200+ participants through challenges that tested lateral thinking. Built with: React, Redux, MongoDB, Node. https://github.com/AbhishekBadar/puzzleIT
+
+### Traffic Density Analyzer (2023 · Research)
+YOLO-powered signal timing. Real-time traffic management using YOLO for vehicle detection and dynamic signal timing. Reduced simulated congestion by 25%. Built with: Python, YOLO, OpenCV. https://github.com/AbhishekBadar/Traffic-Density-Analyzer
+
+### WhileGPTThinks (2025 · Chrome extension)
+A silly but useful toy. Redirects you to YouTube Shorts while ChatGPT generates a reply, then brings you back when the answer is ready. Built with: JavaScript, Chrome APIs. https://github.com/AbhishekBadar/whilegptthinks
+
+## Skills
+
+- Frontend: React · Next.js · Tailwind CSS
+- Backend: Laravel · REST APIs · MySQL
+- Mobile: Flutter · Dart
+- AI & Automation: RAG · Pinecone · OCR · N8N
+- Tools & Infra: Firebase · Git · Deployments
+- Languages: TypeScript · PHP · Python
+
+## Education & Credentials
+
+- B.Tech, Information Technology — RCOEM (2020–2024)
+- AI Minor — IIT Ropar (2024–2025)
+- Certified: Azure · AI · Flutter
+- Currently at Xeo Information Systems, Pune
