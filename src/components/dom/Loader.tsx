@@ -1,5 +1,6 @@
 "use client";
 
+import { useProgress } from "@react-three/drei";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useUIStore } from "@/lib/store";
@@ -52,6 +53,7 @@ function RocketGlyph() {
 
 export default function Loader() {
   const ready = useUIStore((s) => s.ready);
+  const { progress } = useProgress();
   const [minElapsed, setMinElapsed] = useState(false);
   const [forced, setForced] = useState(false);
   const [gone, setGone] = useState(false);
@@ -67,6 +69,10 @@ export default function Loader() {
 
   const complete = ready || forced;
   const hidden = (ready && minElapsed) || forced;
+
+  // Bar tracks real download progress; holds at 96% while shaders compile,
+  // snaps to 100% the instant the scene is ready.
+  const pct = complete ? 100 : Math.min(Math.round(progress), 96);
 
   // Hard unmount fallback: the exit fade is rAF-driven and freezes in
   // background tabs — this timeout guarantees the overlay is removed.
@@ -110,7 +116,7 @@ export default function Loader() {
               Initializing Launch Sequence
             </p>
 
-            {/* Progress bar */}
+            {/* Progress bar — driven by real download progress */}
             <div className="h-[3px] w-[240px] overflow-hidden rounded-full bg-white/10">
               <motion.div
                 className="h-full rounded-full"
@@ -120,14 +126,18 @@ export default function Loader() {
                   boxShadow: "0 0 12px rgba(76,201,240,0.8)",
                 }}
                 initial={{ width: "0%" }}
-                animate={{ width: complete ? "100%" : "90%" }}
+                animate={{ width: `${pct}%` }}
                 transition={
                   complete
                     ? { duration: 0.35, ease: "easeOut" }
-                    : { duration: 2, ease: [0.3, 0.6, 0.3, 1] }
+                    : { duration: 0.4, ease: "easeOut" }
                 }
               />
             </div>
+
+            <p className="font-mono text-[10px] tracking-hud text-hud/60 tabular-nums">
+              {pct}%
+            </p>
           </div>
         </motion.div>
       )}
