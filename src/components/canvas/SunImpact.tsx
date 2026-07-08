@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { IMPACT_POINT, impactProgress } from "@/lib/journey";
+import { IMPACT_POINT } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
 
 /**
@@ -17,7 +17,8 @@ import { scrollState } from "@/lib/scroll";
  *   SW_ — Shockwave ring + white-hot lens flash w/ star spikes + a
  *         horizontal anamorphic streak.
  *
- * Everything is a PURE function of `e = impactProgress(scroll)`; only
+ * Everything is a PURE function of `e = scrollState.impact` (the slow-mo
+ * eased finale value, so the whole blast plays out cinematically); only
  * turbulence/tumble detail rides clock time. Scrubbing up un-explodes it,
  * scrubbing down replays it. Zero per-frame allocation — all scratch is at
  * module scope. Bloom (threshold 0.22) ignites the >1 HDR hot layers.
@@ -642,11 +643,14 @@ export default function SunImpact() {
   useFrame((state) => {
     const g = groupRef.current;
     if (!g) return;
-    const e = impactProgress(scrollState.progress);
+    const e = scrollState.impact;
     g.visible = e > 0.001;
     if (!g.visible) return; // hidden: skip ALL per-frame cost
 
-    const t = state.clock.elapsedTime;
+    // Slow-mo finale: the macro blast already unfolds in slow motion (every
+    // layer is driven by the eased `e`). Dilate the raw clock too so the fire
+    // churn, flicker and shrapnel tumble lick along lazily — the filmic look.
+    const t = state.clock.elapsedTime * 0.5;
 
     /* ================= FIREBALL CORE + SMOKE ================= */
     _fbCamQ.copy(state.camera.quaternion);

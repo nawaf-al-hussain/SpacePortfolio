@@ -7,7 +7,6 @@ import * as THREE from "three";
 import {
   ABOUT_PLANET,
   CONTACT_SUN,
-  impactProgress,
   PROJECTS_PLANET,
   PROJECTS_RING_TILT,
   sectionProgress,
@@ -662,7 +661,7 @@ function ContactSun() {
     // Halo + light swell only as the voyage approaches the finale
     const rv = 0.12 + 0.88 * smoothstep(scrollState.progress, 0.62, 0.78);
     // Impact flare: the sun brightens and its halo swells when rammed
-    const imp = impactProgress(scrollState.progress);
+    const imp = scrollState.impact;
     sunMat.uniforms.uReveal.value = rv;
     sunMat.uniforms.uImpact.value = imp;
     const flare = 1 + imp * 0.9;

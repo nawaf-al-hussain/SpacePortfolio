@@ -11,7 +11,6 @@ import {
 import type { BloomEffect, ChromaticAberrationEffect } from "postprocessing";
 import { Suspense, useEffect, useRef } from "react";
 import * as THREE from "three";
-import { impactProgress } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
 import { useUIStore } from "@/lib/store";
 import CameraRig from "./CameraRig";
@@ -126,7 +125,7 @@ function ImpactPostSurge({
   chroma: React.RefObject<ChromaticAberrationEffect | null>;
 }) {
   useFrame(() => {
-    const e = impactProgress(scrollState.progress);
+    const e = scrollState.impact;
     const surge = e * (1 - e) * 4; // peaks mid-blast, zero at rest
     if (bloom.current) bloom.current.intensity = 0.95 + surge * 1.4;
     // ChromaticAberration.offset may be a Vector2 or the raw [x,y] array

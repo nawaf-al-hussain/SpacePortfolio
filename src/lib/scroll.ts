@@ -2,7 +2,12 @@
 
 import Lenis from "lenis";
 import { useEffect, useState } from "react";
-import { sectionAnchor, sectionAt, type SectionId } from "./journey";
+import {
+  impactProgress,
+  sectionAnchor,
+  sectionAt,
+  type SectionId,
+} from "./journey";
 
 /**
  * Shared, mutable scroll state. Canvas components read this inside
@@ -14,7 +19,17 @@ export const scrollState = {
   progress: 0,
   /** Progress units per second, signed. Feeds the warp/thrust effects. */
   velocity: 0,
+  /**
+   * SLOW-MOTION finale playback: eases toward impactProgress(progress) over
+   * a few seconds so the detonation unfolds cinematically on its own once
+   * you reach the end — not frame-locked to how fast you scroll. Still
+   * reverses if you scroll back up. Every finale effect reads THIS.
+   */
+  impact: 0,
 };
+
+/** Easing rate for the slow-mo blast — ~0.7 ⇒ ≈4s to fully play out. */
+const IMPACT_LAMBDA = 0.7;
 
 let lenis: Lenis | null = null;
 
@@ -44,6 +59,11 @@ export function initSmoothScroll(): () => void {
     const instV = (p - lastP) / dt;
     scrollState.velocity += (instV - scrollState.velocity) * Math.min(1, dt * 8);
     scrollState.progress = p;
+    // Slow-motion finale: ease the impact value toward the scroll target.
+    // Frame-rate-independent (exp form stays stable through long frames).
+    const targetImpact = impactProgress(p);
+    scrollState.impact +=
+      (targetImpact - scrollState.impact) * (1 - Math.exp(-IMPACT_LAMBDA * dt));
     lastP = p;
     lastT = now;
     raf = requestAnimationFrame(loop);

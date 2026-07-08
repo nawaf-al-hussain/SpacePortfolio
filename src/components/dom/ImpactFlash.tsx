@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { impactProgress } from "@/lib/journey";
-import { useScrollRaf } from "@/lib/scroll";
+import { scrollState, useScrollRaf } from "@/lib/scroll";
 
 /**
  * A full-frame flash that briefly blows out the whole viewport — UI
@@ -20,10 +19,10 @@ export default function ImpactFlash() {
   const ref = useRef<HTMLDivElement>(null);
   const last = useRef(-1);
 
-  useScrollRaf((p) => {
+  useScrollRaf(() => {
     const el = ref.current;
     if (!el) return;
-    const e = impactProgress(p);
+    const e = scrollState.impact;
     // Sub-second white-hot bloom then a fast warm afterglow tail
     const a = spike(e, 0.0, 0.06, 0.1, 0.28) * 0.92;
     if (Math.abs(a - last.current) < 0.004) return;

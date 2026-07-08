@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { impactProgress, sampleRocket } from "@/lib/journey";
+import { sampleRocket } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
 import { makeGlowTexture } from "@/lib/textures";
 
@@ -514,7 +514,7 @@ export default function Rocket() {
     // Finale: the sun swallows the rocket — shrink it to nothing as it
     // plunges in (the explosion, mounted separately, takes over). Uses raw
     // progress so it stays locked to the blast, not the damped follow.
-    const impact = impactProgress(scrollState.progress);
+    const impact = scrollState.impact;
     const consume = 1 - THREE.MathUtils.smoothstep(impact, 0.4, 0.8);
     root.scale.setScalar(consume);
     // Violent shudder in the last instant before it's torn apart

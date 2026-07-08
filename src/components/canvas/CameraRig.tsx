@@ -3,7 +3,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
-import { impactProgress, sampleCamera } from "@/lib/journey";
+import { sampleCamera } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
 
 /** Preallocated scratch for the impact recoil (zero per-frame allocation). */
@@ -51,7 +51,7 @@ export default function CameraRig() {
     const t = state.clock.elapsedTime;
     // Impact kick — a violent jolt right as the rocket rams the sun,
     // strongest mid-blast and settling once the fireball dissipates.
-    const imp = impactProgress(scrollState.progress);
+    const imp = scrollState.impact;
     const impShake = imp * (1 - imp) * 4;
     const s = shake.current * 0.06 + impShake * 0.11;
     pos.current.x += Math.sin(t * 31.7) * s + Math.sin(t * 84) * impShake * 0.06;
