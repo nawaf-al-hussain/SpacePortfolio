@@ -30,6 +30,13 @@ export const scrollState = {
 
 /** Easing rate for the slow-mo blast — ~0.7 ⇒ ≈4s to fully play out. */
 const IMPACT_LAMBDA = 0.7;
+/**
+ * Reverse rate: scrolling back UP should REWIND the blast responsively —
+ * hugging the scrollbar so the explosion visibly plays backward instead of
+ * hanging in the air while it slowly fades. Much faster than the forward
+ * slow-mo, so the finale is fully scrubbable on the way out.
+ */
+const IMPACT_REVERSE_LAMBDA = 9;
 
 let lenis: Lenis | null = null;
 
@@ -61,9 +68,16 @@ export function initSmoothScroll(): () => void {
     scrollState.progress = p;
     // Slow-motion finale: ease the impact value toward the scroll target.
     // Frame-rate-independent (exp form stays stable through long frames).
+    // Asymmetric — cinematic slow-mo playing FORWARD into the blast, but a
+    // snappy rewind when scrolling back UP so the explosion reverses with
+    // the scrollbar instead of lingering.
     const targetImpact = impactProgress(p);
+    const lambda =
+      targetImpact >= scrollState.impact
+        ? IMPACT_LAMBDA
+        : IMPACT_REVERSE_LAMBDA;
     scrollState.impact +=
-      (targetImpact - scrollState.impact) * (1 - Math.exp(-IMPACT_LAMBDA * dt));
+      (targetImpact - scrollState.impact) * (1 - Math.exp(-lambda * dt));
     lastP = p;
     lastT = now;
     raf = requestAnimationFrame(loop);
