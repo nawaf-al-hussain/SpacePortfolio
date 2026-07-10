@@ -18,7 +18,25 @@ function makeCanvas(w: number, h: number) {
 
 function toTexture(canvas: HTMLCanvasElement): THREE.CanvasTexture {
   const tex = new THREE.CanvasTexture(canvas);
-  tex.anisotropy = 8;
+  // Anisotropy 1 (was 8) — canvas textures are UI/sprite textures viewed
+  // face-on or billboarded toward the camera; anisotropic filtering is
+  // invisible at those angles and costs GPU bandwidth on every sample.
+  tex.anisotropy = 1;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/**
+ * Sprite texture for additive glow particles — no mipmaps (additive
+ * sprites are always small on screen, mipmaps just waste 33% more memory
+ * per texture and add upload time). Linear min/mag filter is sufficient.
+ */
+function toSpriteTexture(canvas: HTMLCanvasElement): THREE.CanvasTexture {
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 1;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
@@ -85,7 +103,10 @@ export function makeGlowTexture(
   g.addColorStop(1, outer);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, size, size);
-  return toTexture(canvas);
+  // Glow textures are additive sprites — no mipmaps needed (toSpriteTexture
+  // disables them, saving memory + upload time for every comet, warp streak,
+  // skill-card glow, and engine-plume sprite in the scene).
+  return toSpriteTexture(canvas);
 }
 
 /* ------------------------------------------------------------------ */

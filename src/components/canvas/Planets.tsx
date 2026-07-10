@@ -463,6 +463,11 @@ function AboutPlanet() {
   }, []);
 
   useFrame((_, dt) => {
+    // Gate: the about-planet is only visible during progress ~0.17–0.36.
+    // Outside that range, skip the rotation updates entirely — no visible
+    // change, saves 3 quaternion writes + the JS overhead every frame.
+    const p = scrollState.progress;
+    if (p < 0.15 || p > 0.38) return;
     if (planetRef.current) planetRef.current.rotation.y += dt * 0.008;
     if (cloudsRef.current) cloudsRef.current.rotation.y += dt * 0.012;
     if (beltRef.current) beltRef.current.rotation.y += dt * 0.012;
@@ -549,12 +554,16 @@ function ProjectsPlanet() {
   );
 
   useFrame((state, dt) => {
+    // Gate: the projects planet is only visible during progress ~0.5–0.8.
+    // Skip shader uniform updates + rotation outside that range.
+    const p = scrollState.progress;
+    if (p < 0.48 || p > 0.82) return;
     if (planetRef.current) planetRef.current.rotation.y += dt * 0.02;
     const t = state.clock.elapsedTime;
     surfaceMat.uniforms.uTime.value = t;
     ringMat.uniforms.uTime.value = t;
     // Ring + atmosphere glow stay quiet until the voyage nears the reveal
-    const reveal = smoothstep(scrollState.progress, 0.5, 0.64);
+    const reveal = smoothstep(p, 0.5, 0.64);
     ringMat.uniforms.uReveal.value = reveal;
     atmoMat.uniforms.uIntensity.value = 1.2 * (0.22 + 0.78 * reveal);
   });
@@ -656,10 +665,20 @@ function ContactSun() {
   const lightRef = useRef<THREE.PointLight>(null);
 
   useFrame((state) => {
+    // Gate: the sun is only relevant during progress ~0.6–1.0 (it's the
+    // finale destination). Skip all shader/light updates in the hero and
+    // early sections — the sun is too far away to see.
+    const p = scrollState.progress;
+    if (p < 0.58) {
+      // Ensure light is off when far away
+      if (lightRef.current && lightRef.current.intensity !== 0)
+        lightRef.current.intensity = 0;
+      return;
+    }
     sunMat.uniforms.uTime.value = state.clock.elapsedTime;
-    connector.material.opacity = fadeContact(scrollState.progress) * 0.7;
+    connector.material.opacity = fadeContact(p) * 0.7;
     // Halo + light swell only as the voyage approaches the finale
-    const rv = 0.12 + 0.88 * smoothstep(scrollState.progress, 0.62, 0.78);
+    const rv = 0.12 + 0.88 * smoothstep(p, 0.62, 0.78);
     // Impact flare: the sun brightens and its halo swells when rammed
     const imp = scrollState.impact;
     sunMat.uniforms.uReveal.value = rv;

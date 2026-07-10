@@ -247,15 +247,26 @@ export default function ProjectOrbit() {
     const carousel = carouselRef.current;
     if (!root || !carousel) return;
 
-    // Slow orbital revolution around the ring's local Y
-    carousel.rotation.y += CAROUSEL_SPEED * delta;
-
     const alpha = revealAlpha();
     // Invisible meshes don't raycast — gates hover/click for free
     root.visible = alpha > 0.012;
 
-    // Drop any stale hover once the orbit fades (e.g. user scrolled away
-    // without moving the mouse) so the HUD chip doesn't stick around.
+    // Gate: when the orbit is invisible, skip ALL per-frame work — the
+    // carousel rotation, satellite drift, and material opacity writes.
+    // The carousel resumes from the same angle when it comes back into
+    // view (continuous rotation, no visual jump).
+    if (alpha < 0.012) {
+      // Drop any stale hover once the orbit fades (e.g. user scrolled away
+      // without moving the mouse) so the HUD chip doesn't stick around.
+      const store = useUIStore.getState();
+      if (store.hoveredProject) store.setHoveredProject(null);
+      return;
+    }
+
+    // Slow orbital revolution around the ring's local Y
+    carousel.rotation.y += CAROUSEL_SPEED * delta;
+
+    // Drop any stale hover once the orbit fades
     if (alpha < 0.5) {
       const store = useUIStore.getState();
       if (store.hoveredProject) store.setHoveredProject(null);

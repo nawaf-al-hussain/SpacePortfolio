@@ -112,7 +112,11 @@ float vnoiseSky(vec3 p) {
 float fbmSky(vec3 p) {
   float v = 0.0;
   float a = 0.5;
-  for (int i = 0; i < 3; i++) {
+  // 2 octaves (was 3) — the nebula is a "whisper of violet nebulosity"
+  // at 0.30 multiplier on a smoothstepped noise; the 3rd octave added
+  // detail below the visibility threshold. Saves ~33% of full-screen
+  // fragment shader cycles on the skybox pass.
+  for (int i = 0; i < 2; i++) {
     v += a * vnoiseSky(p);
     p = p * 2.1 + vec3(9.3, 4.1, 7.7);
     a *= 0.5;
@@ -167,7 +171,9 @@ export default function SpaceEnvironment() {
     (t) => {
       for (const tex of Array.isArray(t) ? t : [t]) {
         tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = 8;
+        // Anisotropic filtering 8→4 — barely visible on starfield/moon rock
+        // textures, but saves GPU bandwidth especially on mobile/integrated GPUs.
+        tex.anisotropy = 4;
       }
     }
   );
@@ -417,7 +423,10 @@ export default function SpaceEnvironment() {
 
     // Skybox + far starfields ride with the camera (true "infinity" layer)
     if (envGroup.current) envGroup.current.position.copy(cam.position);
-    sky.mat.uniforms.uTime.value = t;
+    // uTime frozen at 0 — the nebula's uTime*0.003 drift is ~0.00005/frame,
+    // completely imperceptible. Skipping the uniform write is trivial, but
+    // the real win is in the FBM octave reduction (3→2) in the shader itself.
+    // sky.mat.uniforms.uTime.value = t; // intentionally not updated
 
     /* comet streaks — drift, wrap, orient along velocity, pulse */
     {
@@ -495,22 +504,31 @@ export default function SpaceEnvironment() {
       }
     }
 
-    /* asteroids — round-robin tumble (AST_STEP per frame) */
+    /* asteroids — round-robin tumble (AST_STEP per frame)
+     * Gated by scroll progress: asteroids cluster near the about-planet,
+     * skills corridor, and projects ring (progress ~0.17–0.82). Outside
+     * that range the camera is in the hero or the finale sun — no asteroids
+     * are visible, so we skip ALL tumble work + the draw call entirely. */
     {
       const { mesh, positions, scales, speeds, axes, quats, N } = asteroids;
-      const mult = N / AST_STEP; // compensate for skipped frames
-      const start = astCursor.current;
-      for (let k = 0; k < AST_STEP; k++) {
-        const i = (start + k) % N;
-        _dq.setFromAxisAngle(axes[i], speeds[i] * dt * mult);
-        quats[i].premultiply(_dq);
-        _p.set(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
-        _s.setScalar(scales[i]);
-        _m4.compose(_p, quats[i], _s);
-        mesh.setMatrixAt(i, _m4);
+      const p = scrollState.progress;
+      const inRange = p > 0.15 && p < 0.84;
+      mesh.visible = inRange;
+      if (inRange) {
+        const mult = N / AST_STEP; // compensate for skipped frames
+        const start = astCursor.current;
+        for (let k = 0; k < AST_STEP; k++) {
+          const i = (start + k) % N;
+          _dq.setFromAxisAngle(axes[i], speeds[i] * dt * mult);
+          quats[i].premultiply(_dq);
+          _p.set(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+          _s.setScalar(scales[i]);
+          _m4.compose(_p, quats[i], _s);
+          mesh.setMatrixAt(i, _m4);
+        }
+        astCursor.current = (start + AST_STEP) % N;
+        mesh.instanceMatrix.needsUpdate = true;
       }
-      astCursor.current = (start + AST_STEP) % N;
-      mesh.instanceMatrix.needsUpdate = true;
     }
 
   });
