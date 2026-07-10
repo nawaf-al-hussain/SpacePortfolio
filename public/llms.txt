@@ -1,29 +1,29 @@
-# Abhishek Badar
+# Nawaf Al Hussain
 
-> Software Development Engineer at Xeo Information Systems (Pune, India). Builds end-to-end web, mobile, and backend systems with React, Next.js, TypeScript, Laravel, and Flutter — plus AI in production (RAG with Pinecone, OCR workflows, automation). IIT Ropar AI Minor graduate.
+> Computer Science & Engineering undergrad at United International University (Dhaka, Bangladesh). Builds end-to-end web, backend, cloud, and AI systems with Java, Spring Boot, Next.js, React, TypeScript, Python, and Docker — from AI-powered recruitment platforms to real-time multiplayer game engines and reverse-engineered Batman game rebuilds. Dark Knight of Code.
 
-Abhishek designs and ships products across the full stack — web frontends, mobile apps, backends, and the automation between them — with a focus on simple, fast, maintainable systems built for real usage. The portfolio at abhishekbadar.com is an interactive 3D (WebGL) experience; the complete text content is mirrored in the files linked below for language models.
+Nawaf designs and ships systems across the full stack — web frontends, backends, cloud infrastructure, and AI features — with a focus on simple, fast, maintainable systems built for real usage. The portfolio at nawaf-al-hussain.vercel.app is an interactive 3D (WebGL) experience; the complete text content is mirrored in the files linked below for language models.
 
 ## Key pages
-- [Portfolio home](https://www.abhishekbadar.com/): Interactive 3D portfolio with about, experience, projects, and skills.
-- [Full profile (Markdown)](https://www.abhishekbadar.com/llms-full.txt): Complete bio, work experience, and every project description in plain text.
-- [Résumé (PDF)](https://www.abhishekbadar.com/Resume_AbhishekBadar.pdf): Downloadable résumé.
+- [Portfolio home](https://nawaf-al-hussain.vercel.app/): Interactive 3D portfolio with about, experience, projects, and skills.
+- [Full profile (Markdown)](https://nawaf-al-hussain.vercel.app/llms-full.txt): Complete bio, work experience, and every project description in plain text.
+- [Résumé (PDF)](https://nawaf-al-hussain.vercel.app/Resume_NawafAlHussain.pdf): Downloadable résumé.
 
 ## Experience
-- Software Development Engineer I, Xeo Information Systems (Mar 2025–Present): Frontend replatform (Laravel Blade → Next.js), a Flutter app built end-to-end (500+ users), and the Laravel backend serving both.
-- Associate Software Engineer, Refyne (Aug 2024–Feb 2025): Built the internal CRM used by 150+ across sales, risk, and growth; automated workflows across Slack, Gmail, and ClickUp; shipped an LLM + Pinecone HR chatbot.
+- BSc Computer Science & Engineering, United International University (2024–Present, Dhaka): Coursework in algorithms, DBMS, OS, software engineering; built a database serializability solver (Conflict Check) and a section planner as course-aligned projects.
+- Independent Developer & Open Source Contributor (2024–Present, Remote): Built NexHire (AI-powered recruitment), Game of Life 2 (real-time multiplayer board game), TDKR (browser-based Batman game rebuild), and several other open-source projects.
 
 ## Selected projects
-- [twitter-autoposter](https://github.com/AbhishekBadar/twitter-autoposter): Self-running content pipeline (DeepSeek, Telegram approval bot, GitHub Actions).
-- [Claude-Tracker](https://github.com/AbhishekBadar/Claude-Tracker): Native macOS menu-bar app tracking Claude Code usage windows (Swift/SwiftUI).
-- [Save Image As](https://chromewebstore.google.com/detail/save-image-as/bcngajhkkkhfalgljjjjbjacjcdlophj): Chrome extension with smart file-naming — 2.46K+ installs, 1K+ active users.
-- [Traffic Density Analyzer](https://github.com/AbhishekBadar/Traffic-Density-Analyzer): YOLO-based vehicle detection and dynamic signal timing.
+- [NexHire](https://github.com/nawaf-al-hussain/NexHire): AI-powered recruitment platform with candidate management, job posting, interviews, and analytics. Migrated from MS SQL Server to Neon Postgres.
+- [The Batcave Portfolio](https://nawaf-al-hussain.vercel.app): Dark Knight of Code — Batman-themed portfolio with Detective Mode aesthetic.
+- [TDKR Web Rebuild](https://github.com/nawaf-al-hussain/TDKR): Browser-based rebuild of The Dark Knight Rises (Gameloft J2ME, 2012) using authentic assets extracted via reverse engineering.
+- [Game of Life 2](https://github.com/nawaf-al-hussain/game-of-life-2): Real-time multiplayer board game engine with a React frontend.
+- [Conflict Check](https://github.com/nawaf-al-hussain/conflict-check): Database serializability solver using precedence graphs.
 
 ## Profiles
-- [GitHub](https://github.com/AbhishekBadar)
-- [LinkedIn](https://www.linkedin.com/in/abhishekbadar)
-- [Medium](https://medium.com/@abhishekbadar)
+- [GitHub](https://github.com/nawaf-al-hussain)
+- [Portfolio (The Batcave)](https://nawaf-al-hussain.vercel.app)
 
 ## Contact
-- Email: ab15.badar@gmail.com
-- Location: Pune, India
+- Email: nkhondokar2420136@bscse.uiu.ac.bd
+- Location: Dhaka, Bangladesh

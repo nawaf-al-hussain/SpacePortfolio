@@ -109,13 +109,8 @@ export default function SeoContent() {
             </a>
           </li>
           <li>
-            <a href={PROFILE.socials.linkedin} rel="noopener">
-              LinkedIn
-            </a>
-          </li>
-          <li>
-            <a href={PROFILE.socials.medium} rel="noopener">
-              Medium
+            <a href={PROFILE.socials.portfolio} rel="noopener">
+              Portfolio (The Batcave)
             </a>
           </li>
           <li>

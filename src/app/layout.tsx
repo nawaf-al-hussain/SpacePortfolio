@@ -27,40 +27,43 @@ const jetbrains = JetBrains_Mono({
 });
 
 const TITLE =
-  "Abhishek Badar — Software Development Engineer | React, TypeScript, Flutter & AI";
+  "Nawaf Al Hussain — Platform Engineer & Cloud Architect | Java, TypeScript, Next.js & AI";
 const DESCRIPTION =
-  "Abhishek Badar is a Software Development Engineer at Xeo Information Systems (Pune, India) building end-to-end web, mobile, and backend systems with React, Next.js, TypeScript, Laravel, and Flutter — plus AI in production (RAG, Pinecone, OCR). IIT Ropar AI Minor graduate.";
+  "Nawaf Al Hussain is a Computer Science & Engineering undergrad at United International University (Dhaka, Bangladesh) building end-to-end web, backend, cloud, and AI systems with Java, Spring Boot, Next.js, React, TypeScript, Python, and Docker — from AI-powered recruitment platforms to real-time multiplayer game engines and reverse-engineered Batman game rebuilds. Dark Knight of Code.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE,
-    template: "%s · Abhishek Badar",
+    template: "%s · Nawaf Al Hussain",
   },
   description: DESCRIPTION,
-  applicationName: "Abhishek Badar Portfolio",
+  applicationName: "Nawaf Al Hussain Portfolio",
   authors: [{ name: PROFILE.name, url: SITE_URL }],
   creator: PROFILE.name,
   publisher: PROFILE.name,
   category: "technology",
   keywords: [
-    "Abhishek Badar",
-    "Abhishek Badar portfolio",
-    "Software Development Engineer",
+    "Nawaf Al Hussain",
+    "Nawaf Al Hussain portfolio",
+    "Platform Engineer",
+    "Cloud Architect",
+    "Dark Knight of Code",
+    "The Dark Dev",
     "Full Stack Developer",
     "React Developer",
     "Next.js Developer",
     "TypeScript",
-    "Laravel Developer",
-    "Flutter Developer",
+    "Java Developer",
+    "Spring Boot Developer",
     "AI Engineer",
-    "RAG",
-    "Pinecone",
-    "Xeo Information Systems",
-    "IIT Ropar",
-    "RCOEM",
-    "Pune developer",
-    "software engineer India",
+    "United International University",
+    "UIU Dhaka",
+    "Dhaka developer",
+    "Bangladesh software engineer",
+    "NexHire",
+    "TDKR",
+    "Game of Life 2",
   ],
   alternates: {
     canonical: "/",
@@ -68,19 +71,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "profile",
     firstName: PROFILE.firstName,
-    lastName: "Badar",
-    username: "abhishekbadar",
+    lastName: "Al Hussain",
+    username: "nawaf-al-hussain",
     title: TITLE,
     description: DESCRIPTION,
     url: SITE_URL,
-    siteName: "Abhishek Badar Portfolio",
+    siteName: "Nawaf Al Hussain Portfolio",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    creator: "@abhishekbadar",
   },
   robots: {
     index: true,
@@ -114,7 +116,7 @@ export const viewport: Viewport = {
 
 /**
  * Rich, linked structured data (schema.org @graph). Answer engines and AI
- * crawlers use this to understand who Abhishek is, what he does, and what
+ * crawlers use this to understand who Nawaf is, what he does, and what
  * he has built — the backbone of AEO / AI-SEO. Built from the same content
  * data that drives the site so it never drifts out of sync.
  */
@@ -126,29 +128,20 @@ const jsonLd = {
       "@id": `${SITE_URL}/#person`,
       name: PROFILE.name,
       givenName: PROFILE.firstName,
-      familyName: "Badar",
+      familyName: "Al Hussain",
       jobTitle: PROFILE.role,
       description: PROFILE.bio,
       url: `${SITE_URL}/`,
       email: `mailto:${PROFILE.email}`,
       address: {
         "@type": "PostalAddress",
-        addressLocality: "Pune",
-        addressRegion: "Maharashtra",
-        addressCountry: "IN",
-      },
-      worksFor: {
-        "@type": "Organization",
-        name: "Xeo Information Systems",
+        addressLocality: "Dhaka",
+        addressCountry: "BD",
       },
       alumniOf: [
         {
           "@type": "CollegeOrUniversity",
-          name: "Ramdeobaba College of Engineering and Management (RCOEM)",
-        },
-        {
-          "@type": "CollegeOrUniversity",
-          name: "Indian Institute of Technology Ropar (IIT Ropar)",
+          name: "United International University (UIU), Dhaka",
         },
       ],
       hasOccupation: {
@@ -156,7 +149,7 @@ const jsonLd = {
         name: PROFILE.role,
         occupationLocation: {
           "@type": "City",
-          name: "Pune, India",
+          name: "Dhaka, Bangladesh",
         },
         skills: SKILLS.map((s) => s.items).join(" · "),
       },
@@ -165,31 +158,29 @@ const jsonLd = {
         "Next.js",
         "TypeScript",
         "JavaScript",
-        "Laravel",
-        "PHP",
-        "Flutter",
-        "Dart",
+        "Java",
+        "Spring Boot",
         "Python",
+        "C#",
         "REST APIs",
-        "MySQL",
-        "Firebase",
+        "SQL",
+        "Docker",
+        "Redis",
+        "Linux",
+        "Reverse Engineering",
         "Retrieval-Augmented Generation (RAG)",
-        "Pinecone vector database",
-        "OCR",
+        "Vector databases",
         "Workflow automation",
         "Artificial Intelligence",
+        "Cloud architecture",
       ],
-      sameAs: [
-        PROFILE.socials.github,
-        PROFILE.socials.linkedin,
-        PROFILE.socials.medium,
-      ],
+      sameAs: [PROFILE.socials.github, PROFILE.socials.portfolio],
     },
     {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       url: `${SITE_URL}/`,
-      name: "Abhishek Badar Portfolio",
+      name: "Nawaf Al Hussain Portfolio",
       description: DESCRIPTION,
       inLanguage: "en",
       publisher: { "@id": `${SITE_URL}/#person` },
@@ -206,7 +197,7 @@ const jsonLd = {
     {
       "@type": "ItemList",
       "@id": `${SITE_URL}/#projects`,
-      name: "Projects by Abhishek Badar",
+      name: "Projects by Nawaf Al Hussain",
       numberOfItems: PROJECTS.length,
       itemListElement: PROJECTS.map((p, i) => ({
         "@type": "ListItem",

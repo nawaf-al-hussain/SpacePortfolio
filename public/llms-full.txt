@@ -1,93 +1,91 @@
-# Abhishek Badar — Software Development Engineer
+# Nawaf Al Hussain — Platform Engineer & Cloud Architect
 
-> Software Development Engineer at Xeo Information Systems (Pune, India) building end-to-end web, mobile, and backend systems with React, Next.js, TypeScript, Laravel, and Flutter — plus AI in production (RAG with Pinecone, OCR workflows, and automation). IIT Ropar AI Minor graduate.
+> Computer Science & Engineering undergrad at United International University (Dhaka, Bangladesh) building end-to-end web, backend, cloud, and AI systems with Java, Spring Boot, Next.js, React, TypeScript, Python, and Docker. Dark Knight of Code — every project is a closed case file.
 
-- Name: Abhishek Badar
-- Role: Software Development Engineer
-- Location: Pune, India
-- Email: ab15.badar@gmail.com
-- Website: https://www.abhishekbadar.com
-- GitHub: https://github.com/AbhishekBadar
-- LinkedIn: https://www.linkedin.com/in/abhishekbadar
-- Medium: https://medium.com/@abhishekbadar
+- Name: Nawaf Al Hussain
+- Role: Platform Engineer & Cloud Architect
+- Location: Dhaka, Bangladesh
+- Email: nkhondokar2420136@bscse.uiu.ac.bd
+- Website: https://nawaf-al-hussain.vercel.app
+- GitHub: https://github.com/nawaf-al-hussain
 
 ## About
 
-I design and ship products end to end across web, mobile, backends, and the automation between them. At Xeo, I own the full stack: Laravel, Next.js, Flutter from zero. Plus AI in production: RAG with Pinecone, OCR workflows, and automation that cuts real operational drag.
+I'm a Computer Science & Engineering undergrad at United International University, Dhaka, building end-to-end systems across web, backend, cloud, and AI. I treat every commit like a closed case file — from AI-powered recruitment platforms to real-time multiplayer game engines, reverse-engineered Batman games, and database-theory tooling. It's not who I am underneath, but what I code that defines me.
 
-I work across the entire stack to reduce dependencies and move faster. I design APIs, build frontends, and develop mobile apps so products can be shipped without bottlenecks.
+I build across the full stack to reduce dependencies and move faster — designing APIs, building frontends, wiring up databases, and deploying to the cloud. My work spans AI platforms, real-time game engines, developer tooling, and browser-based game rebuilds.
 
-At Xeo, I'm rebuilding a production Laravel system into a modern architecture while delivering a Flutter app from scratch — handling legacy code, performance constraints, and scalability challenges in real-world systems.
+I'm currently studying Computer Science & Engineering at United International University in Dhaka, where I balance coursework with shipping real systems — from a recruitment anti-ghosting engine to a database serializability solver and a browser-based rebuild of The Dark Knight Rises (J2ME, 2012).
 
 I focus on building simple, fast, and maintainable systems — designed for actual usage, not just clean implementations.
 
 ## Experience
 
-### Software Development Engineer I — Xeo Information Systems
-Mar 2025 — Present · Pune · Hybrid
+### BSc Computer Science & Engineering — United International University (UIU)
+2024 — Present · Dhaka, Bangladesh
 
-Leading a frontend replatform, building a Flutter app end-to-end, and designing the Laravel backend that serves both.
+Studying Computer Science & Engineering at United International University — building the theoretical foundation alongside practical projects in algorithms, databases, systems design, and software engineering.
 
-- Migrating web frontend from Laravel Blade to Next.js (App Router) — scalable routing, reusable component patterns.
-- Built a reusable React data table abstraction replacing legacy Yajra DataTables — standardized pagination, sorting, server-side data.
-- Shipped complex form workflows using React Hook Form + Zod for type-safe validation.
-- Designed Laravel backend architecture serving web + mobile via RESTful APIs.
-- Built a Flutter app end-to-end for students & parents — fees, events, newsletters, bookings, push notifications. 500+ users.
-- HMAC-based request auth for mobile API security.
-- Payment gateway integration + admin dashboard for tracking, dues reports, receipts.
-- FCM push notifications with deep-link routing.
+- Coursework: Data Structures, Algorithms, DBMS, Operating Systems, Software Engineering, Computer Networks.
+- Built Conflict Check — a database serializability solver that generates precedence graphs to verify conflict serializability.
+- Built a Section Planner app to help students pick course sections without time-slot conflicts.
+- Maintaining a strong academic record while shipping real-world side projects in parallel.
+- Active in the coding community — participating in hackathons and online coding challenges.
 
-### Associate Software Engineer — Refyne
-Aug 2024 — Feb 2025 · Bangalore · Full-time
+### Independent Developer & Open Source Contributor
+2024 — Present · Remote · Dhaka-based
 
-Built the internal CRM platform used by 150+ across sales, risk, and growth. Automated the boring parts.
+Building and shipping systems end-to-end across the full stack — from AI-powered recruitment platforms to real-time multiplayer game engines and browser-based game rebuilds.
 
-- Built an internal CRM on Firebase Auth + serverless architecture — 150+ active users across sales, risk, and growth.
-- Firestore data models for real-time deal tracking, activity logs, and threaded communication.
-- Two-way comment system synced with ClickUp and Postgres — bidirectional sync between CRM and task management.
-- Dashboards + search filters that cut data retrieval time by 60%; custom export-to-CSV for on-demand reports.
-- Migrated 50,000+ records from HubSpot to Firebase with validation and consistency checks (+30% query efficiency).
-- Automated cross-platform workflows (Slack, Gmail, ClickUp) via N8N — reduced ops overhead ~40%.
-- Automated user onboarding via Slack APIs + Firebase Admin SDK — cut onboarding from 30 min to under 5 min.
-- HR chatbot using Pinecone vector DB + LLMs, integrated with Slack (+40% internal support efficiency).
-- Resume ingestion + scoring pipeline: Google Drive, OCR, semantic matching against job descriptions.
-- Integrated Sentry for real-time error monitoring — debugging time down 50%.
+- Built NexHire — an AI-powered recruitment platform with candidate management, job posting, interviews, and analytics; migrated from MS SQL Server to Neon PostgreSQL.
+- Shipped Game of Life 2 — a real-time multiplayer board game engine with a React frontend.
+- Reverse-engineered The Dark Knight Rises (Gameloft J2ME, 2012) into a browser-based TypeScript rebuild (TDKR) using authentic game assets.
+- Built Conflict Check — a database serializability solver using precedence graphs and cycle detection.
+- Tech stack: Java, Spring Boot, TypeScript, Next.js, React, Python, C#, Node.js, Docker, Redis, SQL.
+- Maintaining 16+ public repositories on GitHub.
 
 ## Projects
 
-### DoSpaces Plugin (2025 · Open source)
-osTicket attachments, offloaded to the cloud. osTicket plugin that offloads ticket attachments to DigitalOcean Spaces with secure public-link generation — cut agent response time by 30%. Built with: PHP, DigitalOcean Spaces, REST.
+### NexHire (2025 · Full-stack · AI)
+AI-powered recruitment anti-ghosting engine. A comprehensive recruitment platform with candidate management, job posting, interview scheduling, and analytics. Includes an AI-powered anti-ghosting engine to keep candidates engaged. Migrated from MS SQL Server to Neon PostgreSQL for Vercel-ready deployment. Built with: Java, Spring Boot, Next.js, Neon Postgres, AI. https://github.com/nawaf-al-hussain/NexHire
 
-### twitter-autoposter (2026 · AI · Automation)
-A content pipeline that runs itself. End-to-end content pipeline: researches trending topics, generates posts with DeepSeek, queues them into Google Sheets, and routes through a Telegram approval bot. Runs daily on GitHub Actions. Built with: Python, DeepSeek, Telegram Bot, Google Sheets, GitHub Actions. https://github.com/AbhishekBadar/twitter-autoposter
+### The Batcave Portfolio (2025 · Portfolio · Dark theme)
+Dark Knight of Code — Detective Mode enabled. My primary dark-themed portfolio with a Batman-inspired Detective Mode aesthetic. Built around the 'Dark Knight of Code' persona — every project is a closed case file, color-coded in Batcave gold and black. Deployed at nawaf-al-hussain.vercel.app. Built with: Next.js, React, Tailwind CSS, Framer Motion. https://nawaf-al-hussain.vercel.app
 
-### Claude-Tracker (2026 · macOS · Swift)
-Never blow a quota mid-flow. Native menu-bar app that tracks Claude Code usage across weekly and 5-hour rolling windows. Built with: Swift, SwiftUI, macOS. https://github.com/AbhishekBadar/Claude-Tracker
+### TDKR Web Rebuild (2025 · Game · Reverse engineering)
+Batman: The Dark Knight Rises — rebuilt in the browser. A browser-based rebuild of The Dark Knight Rises (Gameloft J2ME, 2012) using authentic assets and game logic extracted via reverse engineering. A translation project — every value, behavior, and structure comes from the original game. Built with: TypeScript, Vite, Canvas, Reverse Engineering. https://github.com/nawaf-al-hussain/TDKR
 
-### Save Image As (2026 · Chrome extension · Live)
-2.46K+ installs, 1K+ active users. Chrome extension with intelligent file-naming suggestions and streamlined download management. 2.46K+ installs, 1K+ active users, 4.36K+ store page views. Built with: JavaScript, Chrome APIs, Manifest v3. https://chromewebstore.google.com/detail/save-image-as/bcngajhkkkhfalgljjjjbjacjcdlophj
+### Game of Life 2 (2025 · Real-time · Multiplayer)
+Real-time multiplayer board game engine. A board game engine implementation of The Game of Life with a React frontend and real-time multiplayer support. Players join a shared session and progress through life events together in real time. Built with: React, Node.js, WebSocket, Real-time. https://github.com/nawaf-al-hussain/game-of-life-2
 
-### PuzzleIT (2024 · Side project)
-Escape rooms in the browser. Web-based escape-room puzzle game with real-time collaboration. Engaged 200+ participants through challenges that tested lateral thinking. Built with: React, Redux, MongoDB, Node. https://github.com/AbhishekBadar/puzzleIT
+### Conflict Check (2024 · Database theory · Tool)
+Database serializability solver. A tool to check if a database schedule is conflict serializable using precedence graphs. Built as a course-aligned project to visualize and verify database transaction theory — generates a precedence graph and detects cycles. Built with: Python, Graph Theory, DBMS. https://github.com/nawaf-al-hussain/conflict-check
 
-### Traffic Density Analyzer (2023 · Research)
-YOLO-powered signal timing. Real-time traffic management using YOLO for vehicle detection and dynamic signal timing. Reduced simulated congestion by 25%. Built with: Python, YOLO, OpenCV. https://github.com/AbhishekBadar/Traffic-Density-Analyzer
+### SyllabAI (2025 · AI · Education)
+AI-powered syllabus assistant. An AI-powered tool for syllabus management and educational assistance. Currently in development — exploring LLM applications for academic course planning, study aids, and intelligent content recommendations. Built with: TypeScript, AI, LLM, Education. https://github.com/nawaf-al-hussain/SyllabAI
 
-### WhileGPTThinks (2025 · Chrome extension)
-A silly but useful toy. Redirects you to YouTube Shorts while ChatGPT generates a reply, then brings you back when the answer is ready. Built with: JavaScript, Chrome APIs. https://github.com/AbhishekBadar/whilegptthinks
+### Section Planner (2024 · Utility · Student tool)
+Pick course sections without conflicts. A utility app for students to plan their semester schedules — pick course sections without time conflicts. Built to scratch my own itch during course registration at UIU. Built with: React, TypeScript, Scheduling. https://github.com/nawaf-al-hussain/section-planner
 
 ## Skills
 
-- Frontend: React · Next.js · Tailwind CSS
-- Backend: Laravel · REST APIs · MySQL
-- Mobile: Flutter · Dart
-- AI & Automation: RAG · Pinecone · OCR · N8N
-- Tools & Infra: Firebase · Git · Deployments
-- Languages: TypeScript · PHP · Python
+- Frontend: React, Next.js, Tailwind CSS, Framer Motion
+- Backend: Spring Boot, Node.js, REST APIs, SQL
+- Languages: Java, TypeScript, Python, C#, JavaScript
+- Cloud & Infra: Docker, Redis, Vercel, Neon Postgres
+- AI & Automation: LLMs, RAG, Vector DBs, Automation
+- Tools: Git, GitHub Actions, Linux, Reverse Engineering
 
 ## Education & Credentials
 
-- B.Tech, Information Technology — RCOEM (2020–2024)
-- AI Minor — IIT Ropar (2024–2025)
-- Certified: Azure · AI · Flutter
-- Currently at Xeo Information Systems, Pune
+- BSc, Computer Science & Engineering — UIU, Dhaka (2024–Present)
+- Focus: Full-stack · Cloud · AI/ML · Systems Design
+- Dark Knight of Code — Batman-themed portfolio @ nawaf-al-hussain.vercel.app
+- Based in Dhaka, Bangladesh
+
+## Contact
+
+- Email: nkhondokar2420136@bscse.uiu.ac.bd
+- Location: Dhaka, Bangladesh
+- GitHub: https://github.com/nawaf-al-hussain
+- Portfolio: https://nawaf-al-hussain.vercel.app

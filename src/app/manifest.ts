@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Abhishek Badar — Software Development Engineer",
-    short_name: "Abhishek Badar",
+    name: "Nawaf Al Hussain — Platform Engineer & Cloud Architect",
+    short_name: "Nawaf Al Hussain",
     description:
-      "Portfolio of Abhishek Badar, a Software Development Engineer building end-to-end web, mobile, backend, and AI systems.",
+      "Portfolio of Nawaf Al Hussain — a Computer Science & Engineering undergrad at UIU (Dhaka) building end-to-end web, backend, cloud, and AI systems with Java, Spring Boot, Next.js, React, TypeScript, Python, and Docker. Dark Knight of Code.",
     start_url: "/",
     display: "standalone",
     background_color: "#02010a",
