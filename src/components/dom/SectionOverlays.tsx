@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ARCHIVE_URL, EXPERIENCE, PROFILE, PROJECTS } from "@/lib/data";
 import { useScrollRaf } from "@/lib/scroll";
+import { sectionAt, type SectionId } from "@/lib/journey";
 import { useUIStore } from "@/lib/store";
 
 /* ------------------------------------------------------------------ */
@@ -63,6 +64,110 @@ const CONTACT_COPY =
   "I'm currently open to new opportunities — full-time, contract, or just a good chat. Whether you have a project idea, a question, or you just want to say hi, my inbox is the best way to reach me.";
 
 /* ------------------------------------------------------------------ */
+/* MobileSheet — collapsible bottom-sheet wrapper                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Wraps a panel's content. On mobile: renders a sticky header that's always
+ * visible (kicker + title + chevron), and a body that expands/collapses on
+ * tap. Collapsed = header only (~64px, scene fully visible). Expanded =
+ * up to 80vh with internal scroll.
+ *
+ * On desktop (lg+): renders children directly, no collapse behavior —
+ * the desktop cards are already the right size.
+ *
+ * Touch behavior: the header is pointer-events-auto (tappable). The body
+ * is pointer-events-none when collapsed (touch passes through to scroll)
+ * and pointer-events-auto when expanded (internal scroll). This avoids the
+ * scroll-trap bug from the previous iteration.
+ */
+function MobileSheet({
+  panelRef,
+  hiddenStyle,
+  kicker,
+  title,
+  expanded,
+  onToggle,
+  children,
+  desktopClass,
+}: {
+  panelRef: React.RefObject<HTMLDivElement | null>;
+  hiddenStyle: CSSProperties;
+  kicker: string;
+  title: ReactNode;
+  expanded: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+  /** Desktop-only classes applied to the outer panel (lg:). */
+  desktopClass: string;
+}) {
+  return (
+    <div
+      ref={panelRef}
+      style={{
+        ...hiddenStyle,
+        background:
+          "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
+        boxShadow:
+          "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+        backdropFilter: "blur(18px)",
+        scrollbarWidth: "thin",
+        scrollbarColor: "rgba(76,201,240,0.35) transparent",
+      }}
+      className={`hud-corners w-full max-w-[calc(100vw-1.5rem)] rounded-2xl border border-hud/25 p-0 sm:p-0 lg:pointer-events-auto lg:p-8 ${desktopClass}`}
+    >
+      {/* Mobile: sticky tap-to-expand header. Desktop: hidden (content flows directly). */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        className="pointer-events-auto flex w-full items-center justify-between gap-3 px-5 py-3.5 lg:hidden"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-hud">
+            {kicker}
+          </p>
+          <div className="mt-0.5 truncate font-display text-[15px] font-bold leading-tight text-star">
+            {title}
+          </div>
+        </div>
+        <span
+          aria-hidden
+          className={`shrink-0 text-cyan transition-transform duration-300 ${
+            expanded ? "rotate-180" : ""
+          }`}
+        >
+          {/* Chevron */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </span>
+      </button>
+
+      {/* Mobile: collapsible body. Desktop: always visible (no collapse). */}
+      <div
+        className={`lg:block ${
+          expanded
+            ? "pointer-events-auto block max-h-[72vh] overflow-y-auto p-5 pt-0"
+            : "hidden"
+        } lg:max-h-none lg:overflow-visible lg:p-0`}
+      >
+        {/* Desktop: render kicker + title inside the body (mobile uses the header). */}
+        <div className="hidden lg:block">
+          <Kicker>{kicker}</Kicker>
+          <h2 className="mt-3 font-display text-[32px] font-bold leading-[1.05] text-star sm:text-[40px]">
+            {title}
+          </h2>
+        </div>
+        {/* Mobile: spacer between header and body when expanded */}
+        <div className="h-4 lg:hidden" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 
 export default function SectionOverlays() {
   const aboutRef = useRef<HTMLDivElement>(null);
@@ -113,6 +218,34 @@ export default function SectionOverlays() {
   const [activeJob, setActiveJob] = useState(0);
   const job = EXPERIENCE[activeJob];
 
+  /* ---------------- mobile sheet expand/collapse state ---------------- */
+  // Each sheet auto-expands when its section becomes active and auto-collapses
+  // when the user scrolls away. User can also tap to toggle manually.
+  const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [expExpanded, setExpExpanded] = useState(false);
+  const [contactExpanded, setContactExpanded] = useState(false);
+  const lastSection = useRef<SectionId>("hero");
+
+  useScrollRaf((p) => {
+    // Auto-expand on section entry, auto-collapse on exit.
+    const s = sectionAt(p);
+    if (s !== lastSection.current) {
+      const prev = lastSection.current;
+      lastSection.current = s;
+      // Collapse the section we're leaving.
+      if (prev === "about") setAboutExpanded(false);
+      if (prev === "experience") setExpExpanded(false);
+      if (prev === "contact") setContactExpanded(false);
+      // Expand the section we're entering (small delay so the panel has
+      // faded in first — feels less jumpy).
+      setTimeout(() => {
+        if (s === "about") setAboutExpanded(true);
+        if (s === "experience") setExpExpanded(true);
+        if (s === "contact") setContactExpanded(true);
+      }, 350);
+    }
+  });
+
   /* ---------------- projects hover chip ---------------- */
   const hoveredId = useUIStore((s) => s.hoveredProject);
   const hovered = hoveredId
@@ -122,33 +255,24 @@ export default function SectionOverlays() {
   return (
     <div className="pointer-events-none fixed inset-0 z-10">
       {/* ============ 01 // ABOUT ============ */}
-      {/* Mobile: bottom sheet (55vh, scene visible above). Desktop: left card. */}
+      {/* Mobile: collapsible bottom sheet. Desktop: left card. */}
       <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 lg:inset-x-auto lg:inset-y-0 lg:left-0 lg:block lg:px-0 lg:pb-0 lg:flex lg:items-center">
-        <div
-          ref={aboutRef}
-          style={{
-            ...HIDDEN,
-            background:
-              "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
-            boxShadow:
-              "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
-            backdropFilter: "blur(18px)",
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(76,201,240,0.35) transparent",
-          }}
-          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-hidden rounded-2xl border border-hud/25 p-5 sm:p-6 lg:pointer-events-auto lg:max-h-[80vh] lg:w-[470px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:ml-16 lg:p-8"
+        <MobileSheet
+          panelRef={aboutRef}
+          hiddenStyle={HIDDEN}
+          kicker="01 // About"
+          title={<>Full stack, fewer <span className="text-cyan">bottlenecks</span></>}
+          expanded={aboutExpanded}
+          onToggle={() => setAboutExpanded((v) => !v)}
+          desktopClass="lg:max-h-[80vh] lg:w-[470px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:ml-16"
         >
-          <Kicker>01 // About</Kicker>
-          <h2 className="mt-3 font-display text-[32px] font-bold leading-[1.05] text-star sm:text-[40px]">
-            Full stack, fewer <span className="text-cyan">bottlenecks</span>
-          </h2>
-          <p className="mt-4 text-[14px] leading-relaxed text-white/85 sm:mt-5 sm:text-[15px]">
+          <p className="mt-4 text-[14px] leading-relaxed text-white/85 sm:mt-5 sm:text-[15px] lg:mt-5">
             {PROFILE.about.lead}
           </p>
-          <p className="mt-3 text-[13px] leading-relaxed text-white/75 sm:mt-4 sm:text-sm">
+          <p className="mt-3 text-[13px] leading-relaxed text-white/75 sm:mt-4 sm:text-sm lg:mt-4">
             {PROFILE.about.p2}
           </p>
-          <p className="mt-3 text-[13px] leading-relaxed text-white/75 sm:mt-4 sm:text-sm">
+          <p className="mt-3 text-[13px] leading-relaxed text-white/75 sm:mt-4 sm:text-sm lg:mt-4">
             {PROFILE.about.p3}
           </p>
           <div className="hud-line mt-5 sm:mt-6" />
@@ -162,28 +286,21 @@ export default function SectionOverlays() {
               </li>
             ))}
           </ul>
-        </div>
+        </MobileSheet>
       </div>
 
       {/* ============ 02 // EXPERIENCE ============ */}
-      {/* Mobile: bottom sheet. Desktop: right card. */}
+      {/* Mobile: collapsible bottom sheet. Desktop: right card. */}
       <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 lg:inset-x-auto lg:inset-y-0 lg:right-0 lg:block lg:px-0 lg:pb-0 lg:flex lg:items-center">
-        <div
-          ref={experienceRef}
-          style={{
-            ...HIDDEN,
-            background:
-              "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
-            boxShadow:
-              "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
-            backdropFilter: "blur(18px)",
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(76,201,240,0.35) transparent",
-          }}
-          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-hidden rounded-2xl border border-hud/25 p-5 sm:p-6 lg:pointer-events-auto lg:max-h-[80vh] lg:w-[560px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
+        <MobileSheet
+          panelRef={experienceRef}
+          hiddenStyle={HIDDEN}
+          kicker="02 // Where I've been building"
+          title={job.title}
+          expanded={expExpanded}
+          onToggle={() => setExpExpanded((v) => !v)}
+          desktopClass="lg:max-h-[80vh] lg:w-[560px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24"
         >
-          <Kicker>02 // Where I&apos;ve been building</Kicker>
-
           <div className="pointer-events-auto mt-4 flex flex-wrap gap-2 sm:gap-3">
             {EXPERIENCE.map((j, i) => (
               <button
@@ -234,7 +351,7 @@ export default function SectionOverlays() {
               </li>
             ))}
           </ul>
-        </div>
+        </MobileSheet>
       </div>
 
       {/* ============ SKILLS ============ */}
@@ -303,28 +420,18 @@ export default function SectionOverlays() {
       </div>
 
       {/* ============ 04 // CONTACT ============ */}
-      {/* Mobile: bottom sheet. Desktop: right card. */}
+      {/* Mobile: collapsible bottom sheet. Desktop: right card. */}
       <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 lg:inset-x-auto lg:inset-y-0 lg:right-0 lg:block lg:px-0 lg:pb-0 lg:flex lg:items-center">
-        <div
-          ref={contactRef}
-          style={{
-            ...HIDDEN,
-            background:
-              "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
-            boxShadow:
-              "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
-            backdropFilter: "blur(18px)",
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(76,201,240,0.35) transparent",
-          }}
-          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-hidden rounded-2xl border border-hud/25 p-5 sm:p-6 lg:pointer-events-auto lg:max-h-[80vh] lg:w-[460px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
+        <MobileSheet
+          panelRef={contactRef}
+          hiddenStyle={HIDDEN}
+          kicker="04 // What's next"
+          title={<>Let's make something <span className="text-cyan">together</span></>}
+          expanded={contactExpanded}
+          onToggle={() => setContactExpanded((v) => !v)}
+          desktopClass="lg:max-h-[80vh] lg:w-[460px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24"
         >
-          <Kicker>04 // What&apos;s next</Kicker>
-          <h2 className="mt-2 font-display text-[28px] font-bold leading-[1.08] text-star sm:text-[34px]">
-            Let&apos;s make something{" "}
-            <span className="text-cyan">together</span>.
-          </h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-white/80">
+          <p className="mt-4 text-[15px] leading-relaxed text-white/80 lg:mt-4">
             {CONTACT_COPY}
           </p>
 
@@ -390,7 +497,7 @@ export default function SectionOverlays() {
           <p className="mt-5 font-mono text-[10px] tracking-[0.14em] text-white/25">
             © 2026 NAWAF AL HUSSAIN — BUILT WITH NEXT.JS + R3F
           </p>
-        </div>
+        </MobileSheet>
       </div>
     </div>
   );
