@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { TOTAL_PAGES } from "@/lib/journey";
-import { initSmoothScroll } from "@/lib/scroll";
+import { initSmoothScroll, initScrollDriver } from "@/lib/scroll";
 import { getDeviceProfile } from "@/lib/device";
 import Loader from "@/components/dom/Loader";
 import Navbar from "@/components/dom/Navbar";
@@ -24,10 +24,15 @@ export default function Home() {
   const [vh, setVh] = useState("100vh");
 
   useEffect(() => {
-    // Device-aware smooth scroll — disabled on mobile-low (native momentum
-    // scroll is smoother + cheaper on a 4-core phone than a JS rAF loop).
+    // ALWAYS initialize the scroll state driver — it reads window.scrollY
+    // and updates scrollState (which drives the 3D camera + DOM overlays).
+    // Without this, the 3D scene would be frozen on mobile-low devices.
+    const cleanupDriver = initScrollDriver();
+
+    // Only initialize Lenis smooth scroll on devices that support it well
+    // (desktop + mobile tiers). Mobile-low uses native momentum scroll.
     const profile = getDeviceProfile();
-    const cleanup = profile.smoothScroll
+    const cleanupLenis = profile.smoothScroll
       ? initSmoothScroll()
       : () => {};
 
@@ -49,7 +54,8 @@ export default function Home() {
 
     return () => {
       alive = false;
-      cleanup();
+      cleanupDriver();
+      cleanupLenis();
       window.visualViewport?.removeEventListener("resize", setVhVar);
       window.removeEventListener("orientationchange", setVhVar);
     };

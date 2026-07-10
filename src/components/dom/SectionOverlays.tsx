@@ -136,7 +136,7 @@ export default function SectionOverlays() {
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(76,201,240,0.35) transparent",
           }}
-          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-y-auto rounded-2xl border border-hud/25 p-5 sm:p-6 lg:max-h-[80vh] lg:w-[470px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:ml-16 lg:p-8"
+          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-hidden rounded-2xl border border-hud/25 p-5 sm:p-6 lg:pointer-events-auto lg:max-h-[80vh] lg:w-[470px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:ml-16 lg:p-8"
         >
           <Kicker>01 // About</Kicker>
           <h2 className="mt-3 font-display text-[32px] font-bold leading-[1.05] text-star sm:text-[40px]">
@@ -180,11 +180,11 @@ export default function SectionOverlays() {
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(76,201,240,0.35) transparent",
           }}
-          className="hud-corners pointer-events-auto w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-y-auto rounded-2xl border border-hud/25 p-5 sm:p-6 lg:max-h-[80vh] lg:w-[560px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
+          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-hidden rounded-2xl border border-hud/25 p-5 sm:p-6 lg:pointer-events-auto lg:max-h-[80vh] lg:w-[560px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
         >
           <Kicker>02 // Where I&apos;ve been building</Kicker>
 
-          <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
+          <div className="pointer-events-auto mt-4 flex flex-wrap gap-2 sm:gap-3">
             {EXPERIENCE.map((j, i) => (
               <button
                 key={j.company}
@@ -317,7 +317,7 @@ export default function SectionOverlays() {
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(76,201,240,0.35) transparent",
           }}
-          className="hud-corners pointer-events-auto w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-y-auto rounded-2xl border border-hud/25 p-5 sm:p-6 lg:max-h-[80vh] lg:w-[460px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
+          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-hidden rounded-2xl border border-hud/25 p-5 sm:p-6 lg:pointer-events-auto lg:max-h-[80vh] lg:w-[460px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
         >
           <Kicker>04 // What&apos;s next</Kicker>
           <h2 className="mt-2 font-display text-[28px] font-bold leading-[1.08] text-star sm:text-[34px]">
@@ -332,7 +332,7 @@ export default function SectionOverlays() {
           <a
             href={`mailto:${PROFILE.email}`}
             data-cursor="hover"
-            className="mt-7 block w-full rounded-full bg-gradient-to-r from-cyan to-nebula py-3.5 text-center font-display text-lg font-semibold tracking-wide text-space transition hover:brightness-110 active:scale-[0.98]"
+            className="pointer-events-auto mt-7 block w-full rounded-full bg-gradient-to-r from-cyan to-nebula py-3.5 text-center font-display text-lg font-semibold tracking-wide text-space transition hover:brightness-110 active:scale-[0.98]"
           >
             {PROFILE.email} →
           </a>
@@ -342,7 +342,7 @@ export default function SectionOverlays() {
 
           <div className="hud-line mt-6" />
 
-          <div className="mt-5 flex items-center justify-between">
+          <div className="pointer-events-auto mt-5 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <a
                 href={PROFILE.socials.github}
