@@ -122,7 +122,8 @@ export default function SectionOverlays() {
   return (
     <div className="pointer-events-none fixed inset-0 z-10">
       {/* ============ 01 // ABOUT ============ */}
-      <div className="absolute inset-y-0 left-0 flex items-center">
+      {/* Mobile: bottom sheet (55vh, scene visible above). Desktop: left card. */}
+      <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 lg:inset-x-auto lg:inset-y-0 lg:left-0 lg:block lg:px-0 lg:pb-0 lg:flex lg:items-center">
         <div
           ref={aboutRef}
           style={{
@@ -132,24 +133,26 @@ export default function SectionOverlays() {
             boxShadow:
               "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
             backdropFilter: "blur(18px)",
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(76,201,240,0.35) transparent",
           }}
-          className="hud-corners ml-4 w-[470px] max-w-[calc(100vw-2rem)] rounded-2xl border border-hud/25 p-6 sm:ml-8 sm:p-8 lg:ml-16"
+          className="hud-corners w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-y-auto rounded-2xl border border-hud/25 p-5 sm:p-6 lg:max-h-[80vh] lg:w-[470px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:ml-16 lg:p-8"
         >
           <Kicker>01 // About</Kicker>
           <h2 className="mt-3 font-display text-[32px] font-bold leading-[1.05] text-star sm:text-[40px]">
             Full stack, fewer <span className="text-cyan">bottlenecks</span>
           </h2>
-          <p className="mt-5 text-[15px] leading-relaxed text-white/85">
+          <p className="mt-4 text-[14px] leading-relaxed text-white/85 sm:mt-5 sm:text-[15px]">
             {PROFILE.about.lead}
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-white/75">
+          <p className="mt-3 text-[13px] leading-relaxed text-white/75 sm:mt-4 sm:text-sm">
             {PROFILE.about.p2}
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-white/75">
+          <p className="mt-3 text-[13px] leading-relaxed text-white/75 sm:mt-4 sm:text-sm">
             {PROFILE.about.p3}
           </p>
-          <div className="hud-line mt-6" />
-          <ul className="mt-5 space-y-2">
+          <div className="hud-line mt-5 sm:mt-6" />
+          <ul className="mt-4 space-y-1.5 sm:mt-5 sm:space-y-2">
             {PROFILE.about.credentials.map((cred) => (
               <li
                 key={cred}
@@ -163,7 +166,8 @@ export default function SectionOverlays() {
       </div>
 
       {/* ============ 02 // EXPERIENCE ============ */}
-      <div className="absolute inset-y-0 right-0 flex items-center">
+      {/* Mobile: bottom sheet. Desktop: right card. */}
+      <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 lg:inset-x-auto lg:inset-y-0 lg:right-0 lg:block lg:px-0 lg:pb-0 lg:flex lg:items-center">
         <div
           ref={experienceRef}
           style={{
@@ -173,12 +177,14 @@ export default function SectionOverlays() {
             boxShadow:
               "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
             backdropFilter: "blur(18px)",
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(76,201,240,0.35) transparent",
           }}
-          className="hud-corners pointer-events-auto mr-4 w-[560px] max-w-[calc(100vw-2rem)] rounded-2xl border border-hud/25 p-6 sm:mr-8 sm:p-8 lg:mr-24"
+          className="hud-corners pointer-events-auto w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-y-auto rounded-2xl border border-hud/25 p-5 sm:p-6 lg:max-h-[80vh] lg:w-[560px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
         >
           <Kicker>02 // Where I&apos;ve been building</Kicker>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
             {EXPERIENCE.map((j, i) => (
               <button
                 key={j.company}
@@ -196,18 +202,19 @@ export default function SectionOverlays() {
             ))}
           </div>
 
-          <h3 className="mt-5 font-display text-[22px] font-bold leading-snug text-white">
+          <h3 className="mt-5 font-display text-[20px] font-bold leading-snug text-white sm:text-[22px]">
             {job.title} <span className="text-cyan">@ {job.company}</span>
           </h3>
           <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-hud/90">
             {job.range} · {job.location}
           </p>
-          <p className="mt-3 text-[15px] leading-relaxed text-white/85">
+          <p className="mt-3 text-[14px] leading-relaxed text-white/85 sm:text-[15px]">
             {job.blurb}
           </p>
 
           <div className="hud-line mt-4" />
 
+          {/* Inner scroll only on desktop — on mobile the outer panel scrolls */}
           <ul
             key={activeJob}
             onWheel={(e) => e.stopPropagation()}
@@ -215,12 +222,12 @@ export default function SectionOverlays() {
               scrollbarWidth: "thin",
               scrollbarColor: "rgba(76,201,240,0.35) transparent",
             }}
-            className="mt-4 max-h-[300px] space-y-3 overflow-y-auto pr-2"
+            className="mt-4 space-y-3 pr-2 lg:max-h-[300px] lg:overflow-y-auto"
           >
             {job.points.map((point) => (
               <li
                 key={point}
-                className="flex gap-3 text-sm leading-relaxed text-white/80"
+                className="flex gap-3 text-[13px] leading-relaxed text-white/80 sm:text-sm"
               >
                 <span className="mt-0.5 shrink-0 text-cyan">▹</span>
                 <span>{point}</span>
@@ -296,7 +303,8 @@ export default function SectionOverlays() {
       </div>
 
       {/* ============ 04 // CONTACT ============ */}
-      <div className="absolute inset-y-0 right-0 flex items-center">
+      {/* Mobile: bottom sheet. Desktop: right card. */}
+      <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3 lg:inset-x-auto lg:inset-y-0 lg:right-0 lg:block lg:px-0 lg:pb-0 lg:flex lg:items-center">
         <div
           ref={contactRef}
           style={{
@@ -306,8 +314,10 @@ export default function SectionOverlays() {
             boxShadow:
               "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
             backdropFilter: "blur(18px)",
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(76,201,240,0.35) transparent",
           }}
-          className="hud-corners pointer-events-auto mr-4 w-[460px] max-w-[calc(100vw-2rem)] rounded-2xl border border-hud/25 p-6 sm:mr-8 sm:p-8 lg:mr-24"
+          className="hud-corners pointer-events-auto w-full max-w-[calc(100vw-1.5rem)] max-h-[55vh] overflow-y-auto rounded-2xl border border-hud/25 p-5 sm:p-6 lg:max-h-[80vh] lg:w-[460px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24 lg:p-8"
         >
           <Kicker>04 // What&apos;s next</Kicker>
           <h2 className="mt-2 font-display text-[28px] font-bold leading-[1.08] text-star sm:text-[34px]">
