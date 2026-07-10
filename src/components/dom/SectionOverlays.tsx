@@ -219,30 +219,22 @@ export default function SectionOverlays() {
   const job = EXPERIENCE[activeJob];
 
   /* ---------------- mobile sheet expand/collapse state ---------------- */
-  // Each sheet auto-expands when its section becomes active and auto-collapses
-  // when the user scrolls away. User can also tap to toggle manually.
+  // Sheets are COLLAPSED by default — user taps the header to expand.
+  // They auto-collapse when scrolling away so they don't linger expanded.
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [expExpanded, setExpExpanded] = useState(false);
   const [contactExpanded, setContactExpanded] = useState(false);
   const lastSection = useRef<SectionId>("hero");
 
   useScrollRaf((p) => {
-    // Auto-expand on section entry, auto-collapse on exit.
+    // Auto-collapse on section exit — no auto-expand (user chooses).
     const s = sectionAt(p);
     if (s !== lastSection.current) {
       const prev = lastSection.current;
       lastSection.current = s;
-      // Collapse the section we're leaving.
       if (prev === "about") setAboutExpanded(false);
       if (prev === "experience") setExpExpanded(false);
       if (prev === "contact") setContactExpanded(false);
-      // Expand the section we're entering (small delay so the panel has
-      // faded in first — feels less jumpy).
-      setTimeout(() => {
-        if (s === "about") setAboutExpanded(true);
-        if (s === "experience") setExpExpanded(true);
-        if (s === "contact") setContactExpanded(true);
-      }, 350);
     }
   });
 
