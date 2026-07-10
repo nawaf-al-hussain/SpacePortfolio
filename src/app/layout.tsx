@@ -110,6 +110,15 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // viewport-fit=cover — lets the page extend into the notch/safe areas
+  // on iPhone X+ so the 3D scene fills the screen edge-to-edge.
+  viewportFit: "cover",
+  // maximumScale + user-scalable=no prevents the accidental double-tap
+  // zoom that would break the scroll-driven 3D experience. Accessibility
+  // note: this is a deliberate trade-off for a 3D portfolio — users who
+  // need zoom can use browser-level zoom (Ctrl/Cmd + +).
+  maximumScale: 1,
+  userScalable: false,
   themeColor: "#02010a",
   colorScheme: "dark",
 };

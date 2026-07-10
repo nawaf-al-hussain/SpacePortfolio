@@ -133,4 +133,74 @@ body {
   html {
     scroll-behavior: auto;
   }
+  /* Kill all decorative animations under reduced-motion — accessibility */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
+
+/* --- Mobile optimizations --------------------------------------------- */
+
+/* Use --vh (set by JS) instead of vh units — iOS Safari's address bar
+   makes 100vh jump by ~80px on scroll. Anywhere we used `vh` for layout
+   should switch to `var(--vh, 1vh)`. The scroll runway in page.tsx
+   already does this. */
+:root {
+  --vh: 1vh;
+}
+
+/* Touch-friendly tap targets on mobile — buttons get a larger hit area
+   without changing visual size. iOS requires ≥44px hit target. */
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  a[data-cursor] {
+    /* Add invisible padding around tap targets */
+    position: relative;
+  }
+  button::before,
+  [role="button"]::before,
+  a[data-cursor]::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    z-index: -1;
+    border-radius: inherit;
+  }
+
+  /* Disable the custom cursor's hover scale on touch — it causes a
+     visible lag on tap. The cursor element itself is hidden on touch
+     via the `pointer: fine` media query in CustomCursor.tsx, but
+     .custom-cursor-active still gets applied — neutralize its
+     `cursor: none` so the system tap indicator shows. */
+  .custom-cursor-active,
+  .custom-cursor-active a,
+  .custom-cursor-active button,
+  .custom-cursor-active [role="button"],
+  .custom-cursor-active input,
+  .custom-cursor-active textarea {
+    cursor: auto;
+  }
+}
+
+/* Prevent iOS Safari rubber-band scroll on the fixed 3D canvas — only
+   the <main> scroll runway should scroll. */
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent text selection on the 3D scene — long-press on mobile would
+   otherwise show the iOS callout/menu on the canvas. */
+canvas {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: pan-y;
+}
+

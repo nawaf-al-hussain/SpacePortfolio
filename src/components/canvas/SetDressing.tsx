@@ -17,7 +17,9 @@ import { makeGlowTexture, makeTextTexture } from "@/lib/textures";
 
 useGLTF.preload("/models/astronaut.glb");
 useGLTF.preload("/models/spaceship.glb");
-// NASA IGOAL ISS — meshopt-compressed; drei decodes it built-in
+// NASA IGOAL ISS — meshopt-compressed; drei decodes it built-in.
+// Preload is unconditional (cheap — just registers a loader), but the
+// actual fetch + decode is gated by the loadIss prop below.
 useGLTF.preload("/models/iss.glb");
 
 /* Spaceship flyby path (world space) — stays far from the camera corridor */
@@ -142,8 +144,19 @@ function ShipFlyby() {
  * The work-log station for the experience section — NASA's ISS model
  * (public domain, NASA 3D Resources), recentered and materials tuned
  * for the scene lighting.
+ *
+ * On mobile-low devices the ISS mesh is skipped (loadIss=false from the
+ * device profile). The station still shows: the beacon point light, the
+ * floating label, and the Float animation wrapper — just without the
+ * 4.2 MB ISS mesh. The scene reads correctly because the camera is far
+ * enough away that the silhouette is dominated by the label + light.
  */
-function WorkStation() {
+function WorkStation({ loadIss }: { loadIss: boolean }) {
+  return loadIss ? <WorkStationFull /> : <WorkStationLite />;
+}
+
+/** Full ISS mesh — desktop + mobile tiers. */
+function WorkStationFull() {
   const groupRef = useRef<THREE.Group>(null);
   const spinRef = useRef<THREE.Group>(null);
   const { scene: issScene } = useGLTF("/models/iss.glb");
@@ -152,6 +165,7 @@ function WorkStation() {
   // scene (both break under Strict Mode's double-invoked memos). The
   // model ships proper PBR maps — only env intensity needs tuning.
   const center = useMemo(() => {
+    if (!issScene) return new THREE.Vector3();
     issScene.position.set(0, 0, 0);
     const box = new THREE.Box3().setFromObject(issScene);
     const c = box.getCenter(new THREE.Vector3());
@@ -219,12 +233,73 @@ function WorkStation() {
   );
 }
 
-export default function SetDressing() {
+/**
+ * Lite work station for mobile-low devices — same position, same beacon
+ * light, same floating label, but NO ISS mesh. Saves the 4.2 MB GLB
+ * download + decode + the many draw calls the ISS truss requires.
+ * The camera is far enough away that the silhouette reads correctly
+ * from just the label + light + a simple placeholder cube.
+ */
+function WorkStationLite() {
+  const groupRef = useRef<THREE.Group>(null);
+  const labelRef = useRef<THREE.Mesh>(null);
+
+  const label = useMemo(() => {
+    const { texture, aspect } = makeTextTexture("WORK LOG", { size: 120 });
+    const mat = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+    });
+    return { mat, aspect };
+  }, []);
+
+  useFrame((state) => {
+    const g = groupRef.current;
+    if (!g) return;
+    const p = scrollState.progress;
+    g.visible = p > 0.3 && p < 0.54;
+    if (!g.visible) return;
+    const sp = sectionProgress(p, "experience");
+    const alpha =
+      THREE.MathUtils.smoothstep(sp, 0.05, 0.3) *
+      (1 - THREE.MathUtils.smoothstep(sp, 0.85, 1));
+    label.mat.opacity = alpha * 0.9;
+    if (labelRef.current) labelRef.current.quaternion.copy(state.camera.quaternion);
+  });
+
+  return (
+    <group ref={groupRef} position={STATION.position} visible={false}>
+      <Float speed={0.8} rotationIntensity={0.06} floatIntensity={0.4}>
+        {/* Simple placeholder — a small glowing module instead of the ISS */}
+        <mesh rotation={[0.12, 0.55, -0.06]} scale={1.25}>
+          <boxGeometry args={[3, 1.2, 1.2]} />
+          <meshStandardMaterial
+            color="#3a4566"
+            emissive="#4cc9f0"
+            emissiveIntensity={0.3}
+            roughness={0.6}
+            metalness={0.4}
+          />
+        </mesh>
+      </Float>
+      <pointLight color="#4cc9f0" intensity={4} distance={14} decay={2} />
+      <mesh ref={labelRef} position={[0, 4.6, 0]} renderOrder={20}>
+        <planeGeometry args={[4.2, 4.2 / label.aspect]} />
+        <primitive object={label.mat} attach="material" />
+      </mesh>
+    </group>
+  );
+}
+
+export default function SetDressing({ loadIss }: { loadIss: boolean }) {
   return (
     <>
       <Astronaut />
       <ShipFlyby />
-      <WorkStation />
+      <WorkStation loadIss={loadIss} />
     </>
   );
 }

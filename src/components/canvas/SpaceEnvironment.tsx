@@ -12,6 +12,7 @@ import {
 } from "@/lib/journey";
 import { scrollState } from "@/lib/scroll";
 import { makeGlowTexture } from "@/lib/textures";
+import { getDeviceProfile } from "@/lib/device";
 
 useTexture.preload("/textures/6k_stars_milky_way.webp");
 useTexture.preload("/textures/2k_moon.webp");
@@ -158,6 +159,10 @@ const WARP_SPAN = 140; // z in [camZ-20, camZ-160]
 const AST_COUNT = 90;
 const AST_STEP = 24; // instances tumbled per frame (round-robin)
 
+// Device-tier particle multiplier — mobile-low gets 40%, mobile gets 60%.
+// Applied to comet/warp/asteroid/star/sparkle counts at component mount.
+const PARTICLE_SCALE = getDeviceProfile().particleScale;
+
 /* ------------------------------------------------------------------ */
 
 export default function SpaceEnvironment() {
@@ -197,7 +202,7 @@ export default function SpaceEnvironment() {
 
   /* -------- comet streaks -------- */
   const comets = useMemo(() => {
-    const N = COMET_COUNT;
+    const N = Math.max(40, Math.round(COMET_COUNT * PARTICLE_SCALE));
     const geo = new THREE.PlaneGeometry(1, 1);
     const mat = new THREE.MeshBasicMaterial({
       map: makeGlowTexture("rgba(255,255,255,0.95)"),
@@ -267,7 +272,7 @@ export default function SpaceEnvironment() {
 
   /* -------- warp streaks (velocity-reactive) -------- */
   const warp = useMemo(() => {
-    const N = WARP_COUNT;
+    const N = Math.max(60, Math.round(WARP_COUNT * PARTICLE_SCALE));
     const geo = new THREE.PlaneGeometry(1, 1);
     geo.rotateY(Math.PI / 2); // length axis -> local Z, normal -> local X
     const mat = new THREE.MeshBasicMaterial({
@@ -319,7 +324,8 @@ export default function SpaceEnvironment() {
 
   /* -------- asteroid fields -------- */
   const asteroids = useMemo(() => {
-    const N = AST_COUNT;
+    const N = Math.max(30, Math.round(AST_COUNT * PARTICLE_SCALE));
+    const AST_STEP_SCALED = Math.max(8, Math.round(AST_STEP * PARTICLE_SCALE));
     const geo = new THREE.IcosahedronGeometry(1, 1);
     // CPU-displace vertices once with hash noise (±0.35)
     const pa = geo.attributes.position as THREE.BufferAttribute;
@@ -361,7 +367,8 @@ export default function SpaceEnvironment() {
     // would spawn there so none sit on the lens).
     const bandTilt = new THREE.Euler(0.28, 0, 0.14);
     const frontDir = new THREE.Vector3(0.95, -0.11, 0.27);
-    for (let k = 0; k < 45; k++, i++) {
+    const beltCount = Math.round(45 * PARTICLE_SCALE);
+    for (let k = 0; k < beltCount; k++, i++) {
       const a = Math.random() * Math.PI * 2;
       const r = ABOUT_PLANET.radius + 2 + Math.random() * 6;
       v.set(Math.cos(a) * r, (Math.random() - 0.5) * 1.5, Math.sin(a) * r)
@@ -371,7 +378,8 @@ export default function SpaceEnvironment() {
       put(v.x, v.y, v.z);
     }
     // Scatter along the skills corridor (40)
-    for (let k = 0; k < 40; k++, i++) {
+    const scatterCount = Math.round(40 * PARTICLE_SCALE);
+    for (let k = 0; k < scatterCount; k++, i++) {
       let sx = (Math.random() - 0.5) * 40;
       const sy = (Math.random() - 0.5) * 18;
       if (Math.hypot(sx, sy) < 10) sx += sx >= 0 ? 12 : -12; // keep the flight lane clear
@@ -379,7 +387,8 @@ export default function SpaceEnvironment() {
       put(SKILLS_CENTER.x + sx, SKILLS_CENTER.y + sy, SKILLS_CENTER.z + sz);
     }
     // Cluster on the projects ring outskirts (45)
-    for (let k = 0; k < 45; k++, i++) {
+    const clusterCount = Math.round(45 * PARTICLE_SCALE);
+    for (let k = 0; k < clusterCount; k++, i++) {
       const a = Math.random() * Math.PI * 2;
       // Hug the ring — the camera laps the planet at radius ~42, so keep
       // these rocks well inside its path.
@@ -411,8 +420,8 @@ export default function SpaceEnvironment() {
       _m4.compose(_p, qq, _s);
       mesh.setMatrixAt(k, _m4);
     }
-    return { mesh, positions, scales, speeds, axes, quats, N };
-     
+    return { mesh, positions, scales, speeds, axes, quats, N, AST_STEP_SCALED };
+
   }, [moonTex]);
 
   /* -------- per-frame animation -------- */
@@ -510,14 +519,14 @@ export default function SpaceEnvironment() {
      * that range the camera is in the hero or the finale sun — no asteroids
      * are visible, so we skip ALL tumble work + the draw call entirely. */
     {
-      const { mesh, positions, scales, speeds, axes, quats, N } = asteroids;
+      const { mesh, positions, scales, speeds, axes, quats, N, AST_STEP_SCALED } = asteroids;
       const p = scrollState.progress;
       const inRange = p > 0.15 && p < 0.84;
       mesh.visible = inRange;
       if (inRange) {
-        const mult = N / AST_STEP; // compensate for skipped frames
+        const mult = N / AST_STEP_SCALED; // compensate for skipped frames
         const start = astCursor.current;
-        for (let k = 0; k < AST_STEP; k++) {
+        for (let k = 0; k < AST_STEP_SCALED; k++) {
           const i = (start + k) % N;
           _dq.setFromAxisAngle(axes[i], speeds[i] * dt * mult);
           quats[i].premultiply(_dq);
@@ -526,7 +535,7 @@ export default function SpaceEnvironment() {
           _m4.compose(_p, quats[i], _s);
           mesh.setMatrixAt(i, _m4);
         }
-        astCursor.current = (start + AST_STEP) % N;
+        astCursor.current = (start + AST_STEP_SCALED) % N;
         mesh.instanceMatrix.needsUpdate = true;
       }
     }
@@ -538,8 +547,8 @@ export default function SpaceEnvironment() {
       {/* Infinity layer: nebula skybox + far starfields, follow the camera */}
       <group ref={envGroup}>
         <mesh geometry={sky.geo} material={sky.mat} renderOrder={-1} />
-        <Stars radius={170} depth={60} count={2000} factor={3} saturation={0} fade speed={0.4} />
-        <Stars radius={300} depth={60} count={1200} factor={5} saturation={0} fade speed={0.4} />
+        <Stars radius={170} depth={60} count={Math.round(2000 * PARTICLE_SCALE)} factor={3} saturation={0} fade speed={0.4} />
+        <Stars radius={300} depth={60} count={Math.round(1200 * PARTICLE_SCALE)} factor={5} saturation={0} fade speed={0.4} />
       </group>
 
       {/* Comet streaks / warp lines / asteroid fields */}
@@ -549,7 +558,7 @@ export default function SpaceEnvironment() {
 
       {/* Ambient sparkle clusters */}
       <Sparkles
-        count={32}
+        count={Math.max(12, Math.round(32 * PARTICLE_SCALE))}
         scale={[14, 8, 6]}
         position={[0, 0, -2]}
         size={2.5}
@@ -557,7 +566,7 @@ export default function SpaceEnvironment() {
         color="#7df9ff"
       />
       <Sparkles
-        count={44}
+        count={Math.max(16, Math.round(44 * PARTICLE_SCALE))}
         scale={[24, 12, 30]}
         position={[SKILLS_CENTER.x, SKILLS_CENTER.y, SKILLS_CENTER.z]}
         size={3}

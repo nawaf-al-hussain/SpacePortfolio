@@ -13,6 +13,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { scrollState } from "@/lib/scroll";
 import { useUIStore } from "@/lib/store";
+import { getDeviceProfile, type DeviceProfile } from "@/lib/device";
 import CameraRig from "./CameraRig";
 import Rocket from "./Rocket";
 import Planets from "./Planets";
@@ -122,13 +123,17 @@ function DeferredPrecompile() {
  * interactive (ready === true), so first paint never waits on them. They
  * stream in the background, then precompile (env already set) so scrolling
  * to the Work/About/Skills sections never hitches.
+ *
+ * On mobile-low devices the ISS model is skipped entirely (4.2 MB is too
+ * much for a 4-core phone GPU — the work-log station just shows the
+ * label + beacon light without the full ISS mesh).
  */
-function DeferredScene() {
+function DeferredScene({ loadIss }: { loadIss: boolean }) {
   const ready = useUIStore((s) => s.ready);
   if (!ready) return null;
   return (
     <Suspense fallback={null}>
-      <SetDressing />
+      <SetDressing loadIss={loadIss} />
       <DeferredPrecompile />
     </Suspense>
   );
@@ -173,11 +178,12 @@ function ImpactPostSurge({
 export default function Experience() {
   const bloomRef = useRef<BloomEffect | null>(null);
   const chromaRef = useRef<ChromaticAberrationEffect | null>(null);
-  // Adaptive DPR — PerformanceMonitor tunes this between dprMin and dprMax
-  // based on measured FPS. Drops to dprMin when the GPU is struggling.
-  const [dpr, setDpr] = useState<number | [number, number]>([1, 1.5]);
-  // Adaptive post-processing — disabled on low-perf devices.
-  const [postFx, setPostFx] = useState(true);
+  // Device profile — mobile/low-end devices get aggressive quality cuts
+  // at startup (DPR=1, no post-FX, no ISS model). PerformanceMonitor can
+  // still adapt further at runtime.
+  const profile: DeviceProfile = getDeviceProfile();
+  const [dpr, setDpr] = useState<number | [number, number]>([1, profile.maxDpr]);
+  const [postFx, setPostFx] = useState(profile.postFx);
 
   return (
     <div className="fixed inset-0 z-0" aria-hidden>
@@ -272,7 +278,7 @@ export default function Experience() {
             GLB models (ISS, astronaut, spaceship — none appear in the hero)
             stream in AFTER first paint, then precompile so scrolling to
             them never hitches. This is what makes the hero appear fast. */}
-        <DeferredScene />
+        <DeferredScene loadIss={profile.loadIss} />
       </Canvas>
     </div>
   );

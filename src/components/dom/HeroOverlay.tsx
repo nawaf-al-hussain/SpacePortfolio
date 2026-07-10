@@ -68,10 +68,10 @@ export default function HeroOverlay() {
         className="relative h-full w-full"
       >
         {/* Identity — centered band between the nav and the planets */}
-        <div className="absolute inset-x-8 top-[10%] flex flex-col items-center gap-6 text-center">
+        <div className="absolute inset-x-4 top-[8%] flex flex-col items-center gap-4 text-center sm:inset-x-8 sm:top-[10%] sm:gap-6">
           {/* Status chip flanked by HUD lines */}
-          <motion.div variants={item} className="flex items-center gap-4">
-            <span aria-hidden className="hud-line w-14 sm:w-28" />
+          <motion.div variants={item} className="flex items-center gap-2 sm:gap-4">
+            <span aria-hidden className="hud-line w-10 sm:w-28" />
             <span className="glass flex items-center gap-2.5 rounded-full px-5 py-2">
               <span
                 aria-hidden
@@ -87,7 +87,7 @@ export default function HeroOverlay() {
           {/* Name — gradient fill over a soft glow layer */}
           <motion.h1
             variants={item}
-            className="relative font-display text-5xl font-bold uppercase leading-none tracking-[0.05em] lg:text-7xl"
+            className="relative font-display text-4xl font-bold uppercase leading-none tracking-[0.05em] sm:text-5xl lg:text-7xl"
           >
             <span
               aria-hidden
