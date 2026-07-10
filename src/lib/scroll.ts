@@ -40,6 +40,45 @@ const IMPACT_REVERSE_LAMBDA = 9;
 
 let lenis: Lenis | null = null;
 
+/* ------------------------------------------------------------------ */
+/* SINGLE shared rAF loop                                              */
+/* ------------------------------------------------------------------ */
+/**
+ * Performance: previously the site ran 6+ separate rAF loops (Lenis,
+ * useScrollRaf in every DOM overlay, useCurrentSection, CustomCursor, plus
+ * the R3F render loop). Each one called requestAnimationFrame independently
+ * and read scrollState every frame. This consolidates them into ONE driver
+ * loop that:
+ *   1. ticks Lenis
+ *   2. updates scrollState (progress / velocity / impact)
+ *   3. fans out to a Set of subscribers (DOM overlays, cursor, etc.)
+ *
+ * Subscribers use `subscribeScroll(cb)` and `subscribeSection(cb)`.
+ */
+type ScrollCb = (progress: number, velocity: number) => void;
+type SectionCb = (section: SectionId) => void;
+
+const scrollSubs = new Set<ScrollCb>();
+const sectionSubs = new Set<SectionCb>();
+
+let currentSection: SectionId = "hero";
+
+export function subscribeScroll(cb: ScrollCb): () => void {
+  scrollSubs.add(cb);
+  return () => {
+    scrollSubs.delete(cb);
+  };
+}
+
+export function subscribeSection(cb: SectionCb): () => void {
+  sectionSubs.add(cb);
+  // Emit current section immediately so new subscribers don't wait a frame.
+  cb(currentSection);
+  return () => {
+    sectionSubs.delete(cb);
+  };
+}
+
 export function initSmoothScroll(): () => void {
   if (lenis) return () => {};
 
@@ -54,8 +93,15 @@ export function initSmoothScroll(): () => void {
   let lastP = 0;
   let lastT = performance.now();
   let raf = 0;
+  let paused = false;
 
   const loop = (time: number) => {
+    // Pause work when the tab is hidden — saves CPU/GPU when backgrounded.
+    if (paused) {
+      raf = requestAnimationFrame(loop);
+      lastT = time;
+      return;
+    }
     lenis?.raf(time);
     const doc = document.documentElement;
     const max = Math.max(1, doc.scrollHeight - window.innerHeight);
@@ -67,10 +113,6 @@ export function initSmoothScroll(): () => void {
     scrollState.velocity += (instV - scrollState.velocity) * Math.min(1, dt * 8);
     scrollState.progress = p;
     // Slow-motion finale: ease the impact value toward the scroll target.
-    // Frame-rate-independent (exp form stays stable through long frames).
-    // Asymmetric — cinematic slow-mo playing FORWARD into the blast, but a
-    // snappy rewind when scrolling back UP so the explosion reverses with
-    // the scrollbar instead of lingering.
     const targetImpact = impactProgress(p);
     const lambda =
       targetImpact >= scrollState.impact
@@ -80,14 +122,41 @@ export function initSmoothScroll(): () => void {
       (targetImpact - scrollState.impact) * (1 - Math.exp(-lambda * dt));
     lastP = p;
     lastT = now;
+
+    // Fan out to DOM subscribers (cursor, overlays) — single pass.
+    if (scrollSubs.size > 0) {
+      for (const cb of scrollSubs) cb(p, scrollState.velocity);
+    }
+
+    // Section change detection — only fires on transition.
+    const s = sectionAt(p);
+    if (s !== currentSection) {
+      currentSection = s;
+      for (const cb of sectionSubs) cb(s);
+    }
+
     raf = requestAnimationFrame(loop);
   };
   raf = requestAnimationFrame(loop);
 
+  // Pause/resume on tab visibility — avoids burning CPU when backgrounded.
+  const onVisibility = () => {
+    paused = document.hidden;
+    if (!paused) {
+      // Reset time baseline so dt doesn't spike after a long background gap.
+      lastT = performance.now();
+      lastP = scrollState.progress;
+    }
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+
   return () => {
     cancelAnimationFrame(raf);
+    document.removeEventListener("visibilitychange", onVisibility);
     lenis?.destroy();
     lenis = null;
+    scrollSubs.clear();
+    sectionSubs.clear();
   };
 }
 
@@ -106,35 +175,22 @@ export function scrollToSection(id: SectionId) {
 export function useCurrentSection(): SectionId {
   const [section, setSection] = useState<SectionId>("hero");
   useEffect(() => {
-    let raf = 0;
-    let last: SectionId = "hero";
-    const tick = () => {
-      const s = sectionAt(scrollState.progress);
-      if (s !== last) {
-        last = s;
-        setSection(s);
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return subscribeSection(setSection);
   }, []);
   return section;
 }
 
 /**
- * Subscribe a callback to scroll progress on rAF — for DOM elements that
- * animate with scroll without re-rendering (write styles imperatively).
+ * Subscribe a callback to scroll progress on the SHARED rAF loop — for DOM
+ * elements that animate with scroll without re-rendering (write styles
+ * imperatively). Previously each caller spun its own rAF; now they all
+ * share the single driver in initSmoothScroll.
  */
 export function useScrollRaf(cb: (progress: number, velocity: number) => void) {
   useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      cb(scrollState.progress, scrollState.velocity);
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // Emit once immediately so initial state is correct without waiting a frame.
+    cb(scrollState.progress, scrollState.velocity);
+    return subscribeScroll(cb);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

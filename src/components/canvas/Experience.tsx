@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { Environment, PerformanceMonitor } from "@react-three/drei";
 import {
   Bloom,
   ChromaticAberration,
@@ -9,7 +9,7 @@ import {
   Vignette,
 } from "@react-three/postprocessing";
 import type { BloomEffect, ChromaticAberrationEffect } from "postprocessing";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { scrollState } from "@/lib/scroll";
 import { useUIStore } from "@/lib/store";
@@ -21,6 +21,28 @@ import SkillCards from "./SkillCards";
 import ProjectOrbit from "./ProjectOrbit";
 import SetDressing from "./SetDressing";
 import SunImpact from "./SunImpact";
+
+/**
+ * Pauses the R3F render loop when the tab is hidden. The EffectComposer +
+ * bloom + chromatic aberration + every useFrame callback run every frame —
+ * keeping them going while backgrounded burns CPU/GPU for nothing.
+ */
+function TabVisibilityPause() {
+  const invalidate = useThree((s) => s.invalidate);
+  const setFrameloop = useThree((s) => s.setFrameloop);
+  useEffect(() => {
+    const onVis = () => {
+      // "never" fully stops the render loop; a later invalidate() (from
+      // scroll, resize, or becoming visible again) restarts it.
+      setFrameloop(document.hidden ? "never" : "always");
+      if (!document.hidden) invalidate();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    onVis();
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [invalidate, setFrameloop]);
+  return null;
+}
 
 /**
  * Primes the GPU behind the loading screen: compiles every shader program
@@ -151,11 +173,16 @@ function ImpactPostSurge({
 export default function Experience() {
   const bloomRef = useRef<BloomEffect | null>(null);
   const chromaRef = useRef<ChromaticAberrationEffect | null>(null);
+  // Adaptive DPR — PerformanceMonitor tunes this between dprMin and dprMax
+  // based on measured FPS. Drops to dprMin when the GPU is struggling.
+  const [dpr, setDpr] = useState<number | [number, number]>([1, 1.5]);
+  // Adaptive post-processing — disabled on low-perf devices.
+  const [postFx, setPostFx] = useState(true);
 
   return (
     <div className="fixed inset-0 z-0" aria-hidden>
       <Canvas
-        dpr={[1, 1.75]}
+        dpr={dpr}
         gl={{
           // The EffectComposer renders via its own targets — canvas MSAA
           // would only burn memory without touching the composed output
@@ -163,6 +190,10 @@ export default function Experience() {
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.1,
           powerPreference: "high-performance",
+          // Limit pixel ratio to 1.5 max on the canvas itself too — caps
+          // fill rate on 2x/3x retina displays without losing visible quality.
+          stencil: false,
+          depth: true,
         }}
         camera={{ position: [0, 0.4, 10], fov: 45, near: 0.1, far: 400 }}
         onCreated={(state) => {
@@ -181,6 +212,24 @@ export default function Experience() {
           );
         }}
       >
+        {/* Adaptive performance: if FPS drops below 45, scale DPR down to
+            1.0; if it stays below 30, also kill post-processing. Recovers
+            automatically when the GPU catches up. */}
+        <PerformanceMonitor
+          onIncline={() => setPostFx(true)}
+          onDecline={() => {
+            setDpr(1);
+            setPostFx(false);
+          }}
+          flipflops={3}
+          onFallback={() => {
+            // After 3 oscillations, settle on a safe minimum.
+            setDpr(1);
+            setPostFx(false);
+          }}
+        />
+        <TabVisibilityPause />
+
         <Suspense fallback={null}>
           <color attach="background" args={["#050310"]} />
           <ambientLight intensity={0.4} />
@@ -201,17 +250,19 @@ export default function Experience() {
           <ProjectOrbit />
           <SunImpact />
 
-          <EffectComposer multisampling={4}>
-            <Bloom
-              ref={bloomRef}
-              intensity={0.95}
-              luminanceThreshold={0.22}
-              luminanceSmoothing={0.9}
-              mipmapBlur
-            />
-            <ChromaticAberration ref={chromaRef} offset={[0.0004, 0.0004]} />
-            <Vignette eskil={false} offset={0.18} darkness={0.82} />
-          </EffectComposer>
+          {postFx && (
+            <EffectComposer multisampling={0}>
+              <Bloom
+                ref={bloomRef}
+                intensity={0.95}
+                luminanceThreshold={0.22}
+                luminanceSmoothing={0.9}
+                mipmapBlur
+              />
+              <ChromaticAberration ref={chromaRef} offset={[0.0004, 0.0004]} />
+              <Vignette eskil={false} offset={0.18} darkness={0.82} />
+            </EffectComposer>
+          )}
 
           <ImpactPostSurge bloom={bloomRef} chroma={chromaRef} />
           <SceneReady />
