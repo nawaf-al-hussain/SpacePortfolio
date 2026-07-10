@@ -1,12 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ARCHIVE_URL, EXPERIENCE, PROFILE, PROJECTS } from "@/lib/data";
 import { useScrollRaf } from "@/lib/scroll";
 import { sectionAt, type SectionId } from "@/lib/journey";
 import { useUIStore } from "@/lib/store";
+
+/** Mobile breakpoint matchMedia hook — lg breakpoint is 1024px in Tailwind. */
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMobile;
+}
 
 /* ------------------------------------------------------------------ */
 /* Scroll envelope helpers                                             */
@@ -101,6 +114,12 @@ function MobileSheet({
   /** Desktop-only classes applied to the outer panel (lg:). */
   desktopClass: string;
 }) {
+  const isMobile = useIsMobile();
+  // On mobile: show body only when expanded. On desktop: always show.
+  // Using conditional rendering (not CSS) so there's zero ambiguity —
+  // the body DOM nodes don't exist when collapsed on mobile.
+  const showBody = !isMobile || expanded;
+
   return (
     <div
       ref={panelRef}
@@ -117,52 +136,58 @@ function MobileSheet({
       className={`hud-corners w-full max-w-[calc(100vw-1.5rem)] rounded-2xl border border-hud/25 p-0 sm:p-0 lg:pointer-events-auto lg:p-8 ${desktopClass}`}
     >
       {/* Mobile: sticky tap-to-expand header. Desktop: hidden (content flows directly). */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        className="pointer-events-auto flex w-full items-center justify-between gap-3 px-5 py-3.5 lg:hidden"
-      >
-        <div className="min-w-0 flex-1">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-hud">
-            {kicker}
-          </p>
-          <div className="mt-0.5 truncate font-display text-[15px] font-bold leading-tight text-star">
-            {title}
-          </div>
-        </div>
-        <span
-          aria-hidden
-          className={`shrink-0 text-cyan transition-transform duration-300 ${
-            expanded ? "rotate-180" : ""
-          }`}
+      {isMobile && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          className="pointer-events-auto flex w-full items-center justify-between gap-3 px-5 py-3.5"
         >
-          {/* Chevron */}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </span>
-      </button>
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-hud">
+              {kicker}
+            </p>
+            <div className="mt-0.5 truncate font-display text-[15px] font-bold leading-tight text-star">
+              {title}
+            </div>
+          </div>
+          <span
+            aria-hidden
+            className={`shrink-0 text-cyan transition-transform duration-300 ${
+              expanded ? "rotate-180" : ""
+            }`}
+          >
+            {/* Chevron */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
+        </button>
+      )}
 
-      {/* Mobile: collapsible body. Desktop: always visible (no collapse). */}
-      <div
-        className={`lg:block ${
-          expanded
-            ? "pointer-events-auto block max-h-[72vh] overflow-y-auto p-5 pt-0"
-            : "hidden"
-        } lg:max-h-none lg:overflow-visible lg:p-0`}
-      >
-        {/* Desktop: render kicker + title inside the body (mobile uses the header). */}
-        <div className="hidden lg:block">
-          <Kicker>{kicker}</Kicker>
-          <h2 className="mt-3 font-display text-[32px] font-bold leading-[1.05] text-star sm:text-[40px]">
-            {title}
-          </h2>
+      {/* Body: conditional render. Mobile collapsed = no DOM. Desktop = always. */}
+      {showBody && (
+        <div
+          className={
+            isMobile
+              ? "pointer-events-auto max-h-[72vh] overflow-y-auto p-5 pt-0"
+              : ""
+          }
+        >
+          {/* Desktop: render kicker + title inside the body (mobile uses the header). */}
+          {!isMobile && (
+            <>
+              <Kicker>{kicker}</Kicker>
+              <h2 className="mt-3 font-display text-[32px] font-bold leading-[1.05] text-star sm:text-[40px]">
+                {title}
+              </h2>
+            </>
+          )}
+          {/* Mobile: spacer between header and body when expanded */}
+          {isMobile && <div className="h-4" />}
+          {children}
         </div>
-        {/* Mobile: spacer between header and body when expanded */}
-        <div className="h-4 lg:hidden" />
-        {children}
-      </div>
+      )}
     </div>
   );
 }
