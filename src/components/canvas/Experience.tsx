@@ -27,21 +27,47 @@ import SunImpact from "./SunImpact";
  * Pauses the R3F render loop when the tab is hidden. The EffectComposer +
  * bloom + chromatic aberration + every useFrame callback run every frame —
  * keeping them going while backgrounded burns CPU/GPU for nothing.
+ *
+ * IMPORTANT: when the tab becomes visible again, we do NOT immediately
+ * invalidate(). On desktop, the OS may have reclaimed GPU memory while
+ * the tab was hidden, leaving the WebGL context in a stale state.
+ * Invalidating too fast can trigger a spurious webglcontextlost event.
+ * Instead we wait one frame, check that the context is still valid, then
+ * resume. If the context was lost, the Experience-level remount handler
+ * takes over.
  */
 function TabVisibilityPause() {
+  const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
   const setFrameloop = useThree((s) => s.setFrameloop);
   useEffect(() => {
     const onVis = () => {
-      // "never" fully stops the render loop; a later invalidate() (from
-      // scroll, resize, or becoming visible again) restarts it.
-      setFrameloop(document.hidden ? "never" : "always");
-      if (!document.hidden) invalidate();
+      if (document.hidden) {
+        setFrameloop("never");
+      } else {
+        // Wait one frame before resuming — gives the browser time to
+        // restore the WebGL context if the OS reclaimed it.
+        requestAnimationFrame(() => {
+          // Check if the context is still alive before resuming.
+          const ctx = gl.getContext();
+          const isLost =
+            typeof ctx !== "undefined" &&
+            ctx !== null &&
+            "isContextLost" in ctx &&
+            (ctx as WebGLRenderingContext).isContextLost();
+          if (!isLost) {
+            setFrameloop("always");
+            invalidate();
+          }
+          // If context IS lost, do nothing here — the webglcontextlost
+          // handler in Experience.tsx will remount the canvas.
+        });
+      }
     };
     document.addEventListener("visibilitychange", onVis);
     onVis();
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [invalidate, setFrameloop]);
+  }, [gl, invalidate, setFrameloop]);
   return null;
 }
 
@@ -213,18 +239,38 @@ export default function Experience() {
           // Handle for console debugging / tests
           (window as unknown as { __r3f: typeof state }).__r3f = state;
           // GPU context loss recovery — on mobile this happens under memory
-          // pressure. Instead of throwing an error (which permanently kills
-          // the 3D via the error boundary), we bump canvasKey to force a
-          // clean remount of the Canvas with a fresh WebGL context. R3F
-          // handles disposal of the old scene/geometries/textures.
-          state.gl.domElement.addEventListener(
+          // pressure and the context usually doesn't auto-restore, so we
+          // remount. On desktop, context loss is often transient (tab switch,
+          // driver hiccup) and the browser auto-restores via the
+          // 'webglcontextrestored' event — so we listen for that and only
+          // remount if restoration doesn't happen within 2s.
+          const canvas = state.gl.domElement;
+          let restored = false;
+          const onRestored = () => {
+            restored = true;
+            console.log("[Experience] WebGL context auto-restored.");
+            // Force a fresh render to repopulate the restored context.
+            state.gl.info.reset();
+            state.invalidate();
+          };
+          canvas.addEventListener("webglcontextrestored", onRestored, {
+            once: true,
+          });
+
+          canvas.addEventListener(
             "webglcontextlost",
             (e) => {
               e.preventDefault();
-              console.warn("[Experience] WebGL context lost — remounting canvas.");
-              // Small delay so the browser can release GPU memory before
-              // we immediately create a new context.
-              setTimeout(() => setCanvasKey((k) => k + 1), 500);
+              console.warn("[Experience] WebGL context lost.");
+              const profile = getDeviceProfile();
+              const waitMs = profile.isMobile ? 500 : 2000;
+              setTimeout(() => {
+                if (restored) return; // browser handled it — no remount needed
+                console.warn(
+                  "[Experience] Context not restored within " + waitMs + "ms — remounting."
+                );
+                setCanvasKey((k) => k + 1);
+              }, waitMs);
             },
             { once: true }
           );
