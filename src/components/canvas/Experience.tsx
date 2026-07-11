@@ -27,47 +27,19 @@ import SunImpact from "./SunImpact";
  * Pauses the R3F render loop when the tab is hidden. The EffectComposer +
  * bloom + chromatic aberration + every useFrame callback run every frame —
  * keeping them going while backgrounded burns CPU/GPU for nothing.
- *
- * IMPORTANT: when the tab becomes visible again, we do NOT immediately
- * invalidate(). On desktop, the OS may have reclaimed GPU memory while
- * the tab was hidden, leaving the WebGL context in a stale state.
- * Invalidating too fast can trigger a spurious webglcontextlost event.
- * Instead we wait one frame, check that the context is still valid, then
- * resume. If the context was lost, the Experience-level remount handler
- * takes over.
  */
 function TabVisibilityPause() {
-  const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
   const setFrameloop = useThree((s) => s.setFrameloop);
   useEffect(() => {
     const onVis = () => {
-      if (document.hidden) {
-        setFrameloop("never");
-      } else {
-        // Wait one frame before resuming — gives the browser time to
-        // restore the WebGL context if the OS reclaimed it.
-        requestAnimationFrame(() => {
-          // Check if the context is still alive before resuming.
-          const ctx = gl.getContext();
-          const isLost =
-            typeof ctx !== "undefined" &&
-            ctx !== null &&
-            "isContextLost" in ctx &&
-            (ctx as WebGLRenderingContext).isContextLost();
-          if (!isLost) {
-            setFrameloop("always");
-            invalidate();
-          }
-          // If context IS lost, do nothing here — the webglcontextlost
-          // handler in Experience.tsx will remount the canvas.
-        });
-      }
+      setFrameloop(document.hidden ? "never" : "always");
+      if (!document.hidden) invalidate();
     };
     document.addEventListener("visibilitychange", onVis);
     onVis();
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [gl, invalidate, setFrameloop]);
+  }, [invalidate, setFrameloop]);
   return null;
 }
 
@@ -210,16 +182,10 @@ export default function Experience() {
   const profile: DeviceProfile = getDeviceProfile();
   const [dpr, setDpr] = useState<number | [number, number]>([1, profile.maxDpr]);
   const [postFx, setPostFx] = useState(profile.postFx);
-  // Canvas remount key — bumped on WebGL context loss to force R3F to
-  // destroy and recreate the Canvas with a fresh WebGL context. This is
-  // the standard recovery pattern for mobile GPUs that drop context
-  // under memory pressure.
-  const [canvasKey, setCanvasKey] = useState(0);
 
   return (
     <div className="fixed inset-0 z-0" aria-hidden>
       <Canvas
-        key={canvasKey}
         dpr={dpr}
         gl={{
           // The EffectComposer renders via its own targets — canvas MSAA
@@ -238,39 +204,32 @@ export default function Experience() {
           state.scene.fog = new THREE.FogExp2("#0a0618", 0.0035);
           // Handle for console debugging / tests
           (window as unknown as { __r3f: typeof state }).__r3f = state;
-          // GPU context loss recovery — on mobile this happens under memory
-          // pressure and the context usually doesn't auto-restore, so we
-          // remount. On desktop, context loss is often transient (tab switch,
-          // driver hiccup) and the browser auto-restores via the
-          // 'webglcontextrestored' event — so we listen for that and only
-          // remount if restoration doesn't happen within 2s.
-          const canvas = state.gl.domElement;
-          let restored = false;
-          const onRestored = () => {
-            restored = true;
-            console.log("[Experience] WebGL context auto-restored.");
-            // Force a fresh render to repopulate the restored context.
-            state.gl.info.reset();
-            state.invalidate();
-          };
-          canvas.addEventListener("webglcontextrestored", onRestored, {
-            once: true,
-          });
-
-          canvas.addEventListener(
+          // GPU context loss recovery.
+          // Desktop: reload the page (original behavior — rare, works fine).
+          // Mobile: reload too, but guard against infinite loops by checking
+          // sessionStorage. If we've reloaded for context loss within the
+          // last 30 seconds, show the static fallback instead of reloading
+          // again. This breaks the infinite-reload loop on mobile GPUs that
+          // can't maintain a WebGL context.
+          state.gl.domElement.addEventListener(
             "webglcontextlost",
             (e) => {
               e.preventDefault();
-              console.warn("[Experience] WebGL context lost.");
-              const profile = getDeviceProfile();
-              const waitMs = profile.isMobile ? 500 : 2000;
-              setTimeout(() => {
-                if (restored) return; // browser handled it — no remount needed
-                console.warn(
-                  "[Experience] Context not restored within " + waitMs + "ms — remounting."
-                );
-                setCanvasKey((k) => k + 1);
-              }, waitMs);
+              const CONTEXT_LOSS_KEY = "__webglContextLossTime";
+              const now = Date.now();
+              const last = Number(sessionStorage.getItem(CONTEXT_LOSS_KEY) || 0);
+              const within30s = now - last < 30_000;
+              sessionStorage.setItem(CONTEXT_LOSS_KEY, String(now));
+              if (within30s) {
+                // Second context loss within 30s — likely a failing GPU.
+                // Don't reload (would loop). Throw so the CanvasErrorBoundary
+                // catches it and shows the static fallback.
+                console.warn("[Experience] Repeated WebGL context loss — showing static fallback.");
+                throw new Error("Repeated WebGL context loss");
+              } else {
+                console.warn("[Experience] WebGL context lost — reloading page.");
+                window.location.reload();
+              }
             },
             { once: true }
           );
