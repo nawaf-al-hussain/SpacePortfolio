@@ -64,6 +64,25 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Taste-skill Fix 4: "Liquid Glass" refraction — go beyond backdrop-blur.
+   Add a 1px inner border (border-white/10) and subtle inner shadow to
+   simulate physical edge refraction. Toggled via TASTE.glassRefraction
+   which adds the .taste-glass class to <body>. */
+.taste-glass .glass {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 24px rgba(76, 201, 240, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Also enhance the hud-corners panels (About/Experience/Contact sheets)
+   which use Tailwind border-hud/25 — override to white/10 with the
+   same refraction shadows. */
+.taste-glass .hud-corners {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
 /* Corner brackets like the reference HUD frames */
 .hud-corners {
   position: relative;

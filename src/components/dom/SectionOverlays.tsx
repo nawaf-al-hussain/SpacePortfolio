@@ -8,6 +8,7 @@ import { useScrollRaf } from "@/lib/scroll";
 import { sectionAt, type SectionId } from "@/lib/journey";
 import { useUIStore } from "@/lib/store";
 import MagneticButton from "./MagneticButton";
+import { TASTE } from "@/lib/taste";
 
 /** Mobile breakpoint matchMedia hook — lg breakpoint is 1024px in Tailwind. */
 function useIsMobile(): boolean {
@@ -121,6 +122,12 @@ function MobileSheet({
   // the body DOM nodes don't exist when collapsed on mobile.
   const showBody = !isMobile || expanded;
 
+  // Taste-skill Fix 4: enhanced inner-border refraction on glass panels.
+  // Adds a bottom inner shadow for deeper edge refraction when enabled.
+  const boxShadow = TASTE.glassRefraction
+    ? "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(255,255,255,0.04)"
+    : "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)";
+
   return (
     <div
       ref={panelRef}
@@ -128,8 +135,7 @@ function MobileSheet({
         ...hiddenStyle,
         background:
           "linear-gradient(150deg, rgba(14,20,42,0.94), rgba(6,8,20,0.94))",
-        boxShadow:
-          "0 0 40px rgba(5,8,20,0.7), 0 0 24px rgba(76,201,240,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+        boxShadow,
         backdropFilter: "blur(18px)",
         scrollbarWidth: "thin",
         scrollbarColor: "rgba(76,201,240,0.35) transparent",
