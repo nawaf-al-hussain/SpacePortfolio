@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { PROJECTS } from "@/lib/data";
 import { useUIStore } from "@/lib/store";
+import { TASTE } from "@/lib/taste";
 
 export default function ProjectModal() {
   const selectedProject = useUIStore((s) => s.selectedProject);
@@ -77,8 +78,15 @@ export default function ProjectModal() {
                 </h3>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   {project.featured && (
-                    <span className="rounded-full border border-cyan/40 px-3 py-1 font-mono text-[10px] text-cyan">
-                      ★ FEATURED PROJECT
+                    <span className="flex items-center gap-1.5 rounded-full border border-cyan/40 px-3 py-1 font-mono text-[10px] text-cyan">
+                      {TASTE.useSvgIcons ? (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                          <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z" />
+                        </svg>
+                      ) : (
+                        <span aria-hidden>★</span>
+                      )}
+                      FEATURED PROJECT
                     </span>
                   )}
                   <span className="font-mono text-[10px] uppercase tracking-hud text-white/60">
@@ -91,9 +99,15 @@ export default function ProjectModal() {
                 onClick={() => setSelectedProject(null)}
                 aria-label="Close"
                 data-cursor="hover"
-                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/20 text-white/80 transition-colors hover:border-cyan hover:text-cyan"
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/20 text-white/80 transition-colors hover:border-cyan hover:text-cyan active:scale-[0.92]"
               >
-                ✕
+                {TASTE.useSvgIcons ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <span aria-hidden>✕</span>
+                )}
               </button>
             </div>
 

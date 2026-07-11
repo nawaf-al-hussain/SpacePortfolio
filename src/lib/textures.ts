@@ -2,6 +2,7 @@
 
 import * as THREE from "three";
 import type { Project, Skill } from "./data";
+import { TASTE } from "./taste";
 
 /**
  * Canvas-generated textures — keeps the whole site self-contained
@@ -163,12 +164,31 @@ export function makeProjectCardTexture(project: Project): THREE.CanvasTexture {
   ctx.font = `500 20px ${MONO_FONT}`;
   ctx.fillText(project.meta.toUpperCase(), 40, 76);
 
-  // Featured star, top-right
+  // Featured star, top-right — drawn as a clean SVG path instead of the
+  // ★ Unicode glyph (taste-skill anti-emoji policy).
   if (project.featured) {
     ctx.textAlign = "right";
     ctx.fillStyle = "#ffd166";
     ctx.font = `600 22px ${MONO_FONT}`;
-    ctx.fillText("★ FEATURED", W - 40, 76);
+    if (TASTE.useSvgIcons) {
+      // Draw a 5-point star path to the left of the FEATURED text
+      const starX = W - 40 - ctx.measureText("FEATURED").width - 16;
+      const starY = 68;
+      const r = 8;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const x = starX + Math.cos(angle) * r;
+        const y = starY + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillText("FEATURED", W - 40, 76);
+    } else {
+      ctx.fillText("★ FEATURED", W - 40, 76);
+    }
     ctx.textAlign = "left";
   }
 
