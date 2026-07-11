@@ -5,6 +5,7 @@ import { useRef } from "react";
 import type { SectionId } from "@/lib/journey";
 import { PROFILE } from "@/lib/data";
 import { scrollToSection, useCurrentSection, useScrollRaf } from "@/lib/scroll";
+import MagneticButton from "./MagneticButton";
 
 const LINKS: { id: SectionId; num: string; label: string }[] = [
   { id: "about", num: "01", label: "About" },
@@ -44,17 +45,18 @@ export default function Navbar() {
         className="relative flex h-20 w-full items-center justify-between px-8 transition-[background,box-shadow] duration-500 lg:px-14"
       >
         {/* Logo */}
-        <button
-          type="button"
-          data-cursor
-          onClick={() => scrollToSection("hero")}
-          className="pointer-events-auto"
-          aria-label="Back to top"
-        >
-          <span className="font-display text-2xl font-bold leading-none text-star">
-            ab<span className="text-cyan">.</span>
-          </span>
-        </button>
+        <MagneticButton strength={0.2} className="pointer-events-auto">
+          <button
+            type="button"
+            data-cursor
+            onClick={() => scrollToSection("hero")}
+            aria-label="Back to top"
+          >
+            <span className="font-display text-2xl font-bold leading-none text-star">
+              nah<span className="text-cyan">.</span>
+            </span>
+          </button>
+        </MagneticButton>
 
         {/* Center links */}
         <nav className="pointer-events-auto absolute left-1/2 hidden -translate-x-1/2 items-center gap-9 lg:flex">
@@ -85,15 +87,17 @@ export default function Navbar() {
         </nav>
 
         {/* Résumé */}
-        <a
-          href={PROFILE.resume}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-cursor
-          className="pointer-events-auto rounded-full border border-cyan/60 px-6 py-2 font-mono text-xs uppercase tracking-hud text-cyan-bright transition-all duration-300 hover:bg-cyan/15 hover:shadow-[0_0_24px_rgba(76,201,240,0.4)]"
-        >
-          Résumé ↗
-        </a>
+        <MagneticButton strength={0.25} className="pointer-events-auto">
+          <a
+            href={PROFILE.resume}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cursor
+            className="block rounded-full border border-cyan/60 px-6 py-2 font-mono text-xs uppercase tracking-hud text-cyan-bright transition-all duration-300 hover:bg-cyan/15 hover:shadow-[0_0_24px_rgba(76,201,240,0.4)] active:scale-[0.96]"
+          >
+            Résumé ↗
+          </a>
+        </MagneticButton>
 
         {/* Bottom hairline — appears once scrolled */}
         <div

@@ -7,6 +7,7 @@ import { ARCHIVE_URL, EXPERIENCE, PROFILE, PROJECTS } from "@/lib/data";
 import { useScrollRaf } from "@/lib/scroll";
 import { sectionAt, type SectionId } from "@/lib/journey";
 import { useUIStore } from "@/lib/store";
+import MagneticButton from "./MagneticButton";
 
 /** Mobile breakpoint matchMedia hook — lg breakpoint is 1024px in Tailwind. */
 function useIsMobile(): boolean {
@@ -453,13 +454,15 @@ export default function SectionOverlays() {
           </p>
 
           {/* No backend, no forms — straight to the inbox */}
-          <a
-            href={`mailto:${PROFILE.email}`}
-            data-cursor="hover"
-            className="pointer-events-auto mt-7 block w-full rounded-full bg-gradient-to-r from-cyan to-nebula py-3.5 text-center font-display text-lg font-semibold tracking-wide text-space transition hover:brightness-110 active:scale-[0.98]"
-          >
-            {PROFILE.email} →
-          </a>
+          <MagneticButton strength={0.15} className="pointer-events-auto mt-7 block w-full">
+            <a
+              href={`mailto:${PROFILE.email}`}
+              data-cursor="hover"
+              className="block w-full rounded-full bg-gradient-to-r from-cyan to-nebula py-3.5 text-center font-display text-lg font-semibold tracking-wide text-space transition hover:brightness-110 active:scale-[0.98]"
+            >
+              {PROFILE.email} →
+            </a>
+          </MagneticButton>
           <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
             Opens your mail app — I reply within 24h
           </p>
