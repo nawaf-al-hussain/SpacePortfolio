@@ -250,7 +250,7 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${bodyFont.variable} ${jetbrains.variable} antialiased`}
     >
-      <body className={TASTE.glassRefraction ? "taste-glass" : undefined}>
+      <body className={`${TASTE.glassRefraction ? "taste-glass" : ""} ${TASTE.tactileFeedback ? "taste-tactile" : ""}`.trim() || undefined}>
         {children}
         {/* Text alternative to the WebGL experience — full, semantic content
             for screen readers and for AI/search crawlers that don't run JS. */}

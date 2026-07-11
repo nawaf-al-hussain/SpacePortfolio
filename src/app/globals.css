@@ -83,6 +83,16 @@ body {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Taste-skill Fix 5: Tactile feedback — on :active, scale down slightly
+   to simulate a physical push. Uses :not([class*="active:scale"]) so
+   elements that already have a specific active:scale value (email CTA,
+   close button, résumé link) keep their custom values. */
+.taste-tactile button:not([class*="active:scale"]):active,
+.taste-tactile a:not([class*="active:scale"]):active,
+.taste-tactile [role="button"]:not([class*="active:scale"]):active {
+  transform: scale(0.96);
+}
+
 /* Corner brackets like the reference HUD frames */
 .hud-corners {
   position: relative;
