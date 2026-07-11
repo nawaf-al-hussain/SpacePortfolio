@@ -11,7 +11,7 @@
   --color-hud: #9adcff;
   --color-star: #eef2ff;
   --font-display: var(--font-space-grotesk);
-  --font-body: var(--font-inter);
+  --font-body: var(--font-geist, var(--font-inter));
   --font-mono: var(--font-jetbrains);
   --animate-blink: blink 1.6s ease-in-out infinite;
   --animate-scroll-dot: scroll-dot 1.8s ease-in-out infinite;

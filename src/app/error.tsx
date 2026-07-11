@@ -46,7 +46,7 @@ export default function Error({
         </h1>
         <p
           className="mt-3 text-sm leading-relaxed text-white/60"
-          style={{ fontFamily: "Inter, sans-serif" }}
+          style={{ fontFamily: "var(--font-body, 'Geist', sans-serif)" }}
         >
           The 3D engine hit turbulence. Your content is still here — try
           reloading, or scroll to explore the static version.

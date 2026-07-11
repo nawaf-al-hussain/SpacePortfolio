@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, Inter, Geist, JetBrains_Mono } from "next/font/google";
 import {
   PROFILE,
   SKILLS,
   PROJECTS,
   SITE_URL,
 } from "@/lib/data";
+import { TASTE } from "@/lib/taste";
 import SeoContent from "@/components/dom/SeoContent";
 import "./globals.css";
 
@@ -15,6 +16,15 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["400", "500", "600", "700"],
 });
 
+// Taste-skill Fix 1: Geist replaces Inter (Inter is banned by the taste-skill
+// as an overused AI default). Geist has a similar neutral geometry but a
+// more distinct character. Toggle off via TASTE.useGeistFont to revert.
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+});
+
+// Kept for fallback when TASTE.useGeistFont is false.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -25,6 +35,11 @@ const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
 });
+
+// Apply only the active body font's variable to <html>. The CSS @theme
+// uses a fallback chain: var(--font-geist, var(--font-inter)) — so when
+// Geist's variable isn't set (toggle off), it falls back to Inter.
+const bodyFont = TASTE.useGeistFont ? geist : inter;
 
 const TITLE =
   "Nawaf Al Hussain — Platform Engineer & Cloud Architect | Java, TypeScript, Next.js & AI";
@@ -233,7 +248,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrains.variable} antialiased`}
+      className={`${spaceGrotesk.variable} ${bodyFont.variable} ${jetbrains.variable} antialiased`}
     >
       <body>
         {children}
