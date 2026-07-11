@@ -184,10 +184,16 @@ export default function Experience() {
   const profile: DeviceProfile = getDeviceProfile();
   const [dpr, setDpr] = useState<number | [number, number]>([1, profile.maxDpr]);
   const [postFx, setPostFx] = useState(profile.postFx);
+  // Canvas remount key — bumped on WebGL context loss to force R3F to
+  // destroy and recreate the Canvas with a fresh WebGL context. This is
+  // the standard recovery pattern for mobile GPUs that drop context
+  // under memory pressure.
+  const [canvasKey, setCanvasKey] = useState(0);
 
   return (
     <div className="fixed inset-0 z-0" aria-hidden>
       <Canvas
+        key={canvasKey}
         dpr={dpr}
         gl={{
           // The EffectComposer renders via its own targets — canvas MSAA
@@ -207,36 +213,35 @@ export default function Experience() {
           // Handle for console debugging / tests
           (window as unknown as { __r3f: typeof state }).__r3f = state;
           // GPU context loss recovery — on mobile this happens under memory
-          // pressure. Previous code did window.location.reload() which caused
-          // an INFINITE LOOP on devices where the context keeps failing.
-          // Now we just preventDefault (keep the canvas alive) and let the
-          // CanvasErrorBoundary catch any subsequent render error. The page
-          // stays usable with the static fallback background.
+          // pressure. Instead of throwing an error (which permanently kills
+          // the 3D via the error boundary), we bump canvasKey to force a
+          // clean remount of the Canvas with a fresh WebGL context. R3F
+          // handles disposal of the old scene/geometries/textures.
           state.gl.domElement.addEventListener(
             "webglcontextlost",
             (e) => {
               e.preventDefault();
-              console.warn("[Experience] WebGL context lost — falling back to static background.");
-              // Force an error in the next render cycle so the error
-              // boundary catches it and shows the static fallback.
-              throw new Error("WebGL context lost");
+              console.warn("[Experience] WebGL context lost — remounting canvas.");
+              // Small delay so the browser can release GPU memory before
+              // we immediately create a new context.
+              setTimeout(() => setCanvasKey((k) => k + 1), 500);
             },
             { once: true }
           );
         }}
       >
-        {/* Adaptive performance: if FPS drops below 45, scale DPR down to
-            1.0; if it stays below 30, also kill post-processing. Recovers
-            automatically when the GPU catches up. */}
+        {/* Adaptive performance: if FPS drops, scale DPR down and disable
+            post-FX. Recovers automatically when the GPU catches up.
+            NOTE: removed flipflops/onFallback — the permanent fallback
+            was too aggressive on mobile (once triggered, quality never
+            recovered even after the GPU pressure passed). Now it just
+            oscillates between full and reduced quality as needed. */}
         <PerformanceMonitor
-          onIncline={() => setPostFx(true)}
-          onDecline={() => {
-            setDpr(1);
-            setPostFx(false);
+          onIncline={() => {
+            setDpr([1, profile.maxDpr]);
+            if (profile.postFx) setPostFx(true);
           }}
-          flipflops={3}
-          onFallback={() => {
-            // After 3 oscillations, settle on a safe minimum.
+          onDecline={() => {
             setDpr(1);
             setPostFx(false);
           }}
