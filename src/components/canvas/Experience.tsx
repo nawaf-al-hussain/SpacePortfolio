@@ -206,13 +206,20 @@ export default function Experience() {
           state.scene.fog = new THREE.FogExp2("#0a0618", 0.0035);
           // Handle for console debugging / tests
           (window as unknown as { __r3f: typeof state }).__r3f = state;
-          // Graceful recovery if the GPU drops the context (tab pressure,
-          // driver reset): one clean reload restores the scene.
+          // GPU context loss recovery — on mobile this happens under memory
+          // pressure. Previous code did window.location.reload() which caused
+          // an INFINITE LOOP on devices where the context keeps failing.
+          // Now we just preventDefault (keep the canvas alive) and let the
+          // CanvasErrorBoundary catch any subsequent render error. The page
+          // stays usable with the static fallback background.
           state.gl.domElement.addEventListener(
             "webglcontextlost",
             (e) => {
               e.preventDefault();
-              window.location.reload();
+              console.warn("[Experience] WebGL context lost — falling back to static background.");
+              // Force an error in the next render cycle so the error
+              // boundary catches it and shows the static fallback.
+              throw new Error("WebGL context lost");
             },
             { once: true }
           );

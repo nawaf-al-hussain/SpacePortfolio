@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { TOTAL_PAGES } from "@/lib/journey";
 import { initSmoothScroll, initScrollDriver } from "@/lib/scroll";
 import { getDeviceProfile } from "@/lib/device";
+import { useWebGLSupport } from "@/lib/webgl";
 import Loader from "@/components/dom/Loader";
 import Navbar from "@/components/dom/Navbar";
 import HeroOverlay from "@/components/dom/HeroOverlay";
@@ -14,14 +15,40 @@ import HUDRail from "@/components/dom/HUDRail";
 import SocialRail from "@/components/dom/SocialRail";
 import ImpactFlash from "@/components/dom/ImpactFlash";
 import CustomCursor from "@/components/dom/CustomCursor";
+import CanvasErrorBoundary from "@/components/canvas/CanvasErrorBoundary";
 
 const Experience = dynamic(() => import("@/components/canvas/Experience"), {
   ssr: false,
 });
 
+/** Static fallback background when WebGL is unavailable or the canvas crashed. */
+function StaticBackground() {
+  return (
+    <div
+      className="fixed inset-0 z-0"
+      aria-hidden
+      style={{
+        background:
+          "radial-gradient(ellipse at 50% 40%, #0a0820 0%, #050310 50%, #02010a 100%)",
+      }}
+    >
+      <div
+        className="absolute inset-0 opacity-60"
+        style={{
+          backgroundImage:
+            "radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 60% 70%, #fff, transparent), radial-gradient(1px 1px at 80% 20%, #9adcff, transparent), radial-gradient(1px 1px at 40% 80%, #fff, transparent), radial-gradient(2px 2px at 90% 50%, #a78bfa, transparent), radial-gradient(1px 1px at 10% 60%, #fff, transparent), radial-gradient(1px 1px at 70% 40%, #fff, transparent), radial-gradient(1px 1px at 30% 10%, #7df9ff, transparent)",
+          backgroundSize: "300px 300px",
+          backgroundRepeat: "repeat",
+        }}
+      />
+    </div>
+  );
+}
+
 export default function Home() {
   const [fontsReady, setFontsReady] = useState(false);
   const [vh, setVh] = useState("100vh");
+  const webglSupported = useWebGLSupport();
 
   useEffect(() => {
     // ALWAYS initialize the scroll state driver — it reads window.scrollY
@@ -43,9 +70,7 @@ export default function Home() {
     // making `100vh` jump by ~80px. Use the visualViewport API (or the
     // innerHeight fallback) to compute a stable CSS var `--vh`.
     const setVhVar = () => {
-      const h =
-        window.visualViewport?.height ??
-        window.innerHeight;
+      const h = window.visualViewport?.height ?? window.innerHeight;
       setVh(`${h * 0.01}px`);
     };
     setVhVar();
@@ -63,18 +88,26 @@ export default function Home() {
 
   return (
     <main className="relative" style={{ ["--vh" as string]: vh }}>
-      {/* Scroll runway — the journey lives in this scroll distance.
-          Uses --vh (iOS Safari-safe) instead of raw 100vh. */}
+      {/* Scroll runway — the journey lives in this scroll distance. */}
       <div
         style={{
           height: `calc(${TOTAL_PAGES} * var(--vh, 1vh) * 100)`,
         }}
       />
 
-      {/* 3D scene (fixed, behind everything) */}
-      {fontsReady && <Experience />}
+      {/* 3D scene (fixed, behind everything).
+          Wrapped in an error boundary so a WebGL crash doesn't take down
+          the whole page — the DOM overlays still work on a static bg.
+          Also gated on WebGL support — old/broken GPUs skip the canvas. */}
+      {fontsReady && webglSupported ? (
+        <CanvasErrorBoundary>
+          <Experience />
+        </CanvasErrorBoundary>
+      ) : (
+        <StaticBackground />
+      )}
 
-      {/* DOM overlay */}
+      {/* DOM overlay — always rendered, works with or without 3D. */}
       <Navbar />
       <HeroOverlay />
       <SectionOverlays />
