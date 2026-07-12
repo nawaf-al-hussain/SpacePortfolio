@@ -1,3 +1,7 @@
+// MUST be imported first — patches JSON.stringify to handle circular refs
+// before React 19's DevTools serialization runs. See src/lib/json-polyfill.ts.
+import "@/lib/json-polyfill";
+
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter, Geist, JetBrains_Mono } from "next/font/google";
 import {
