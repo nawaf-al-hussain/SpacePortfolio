@@ -3,30 +3,24 @@
 /**
  * Three.js toJSON safety patch — CLIENT COMPONENT.
  *
- * React 19 DevTools calls JSON.stringify on component props. When a prop
- * is a Three.js object, JSON.stringify auto-calls its toJSON() method.
- * Three.js toJSON methods recursively serialize the scene graph → circular
- * refs → 'Converting circular structure to JSON' crash.
+ * MUST run at module load time (not in useEffect) so the prototypes are
+ * patched BEFORE React renders any R3F component. useEffect runs after
+ * the first render — too late, React's DevTools serialization already
+ * crashed on the first frame.
  *
- * Additionally, some classes (Scene, InstancedMesh, etc.) have their own
- * toJSON that accesses properties like data.object.backgroundRotation,
- * which fails if the parent toJSON was overridden.
- *
- * FIX: wrap every toJSON method in a try/catch. If it throws, fall back
- * to a safe minimal descriptor. This handles ALL Three.js classes without
- * having to enumerate them individually.
+ * The patch is applied synchronously when this module is imported.
+ * Import this module at the TOP of page.tsx, before the Experience
+ * dynamic import.
  */
 
 import * as THREE from "three";
-import { useEffect } from "react";
 
 let patched = false;
 
-function applyPatch() {
+export function applyThreePatch() {
   if (patched) return;
   patched = true;
 
-  // Safe fallback descriptor — what toJSON returns if the original throws.
   const safeDescriptor = function (this: any) {
     return {
       __three: true,
@@ -36,69 +30,45 @@ function applyPatch() {
     };
   };
 
-  // Helper: wrap a toJSON method in try/catch.
-  const wrapToJSON = (proto: any) => {
-    if (!proto || typeof proto.toJSON !== "function") return;
-    const original = proto.toJSON;
-    // Don't double-wrap.
-    if (original.__wrapped) return;
-    const wrapped = function (this: any, ...args: any[]) {
-      try {
-        const result = original.apply(this, args);
-        // Verify the result is serializable (no circular refs).
-        JSON.stringify(result);
-        return result;
-      } catch {
-        return safeDescriptor.call(this);
-      }
-    };
-    wrapped.__wrapped = true;
-    proto.toJSON = wrapped;
+  // Override toJSON on all key prototypes to return safe descriptors.
+  // This is the nuclear option — we don't try to call the original toJSON
+  // and catch errors. We just replace it entirely. This is more reliable
+  // than wrapping because there's no chance the original runs and throws
+  // before we catch it.
+  const override = (proto: any) => {
+    if (!proto) return;
+    proto.toJSON = safeDescriptor;
   };
 
-  // Wrap toJSON on all key Three.js prototypes. This covers all subclasses
-  // that inherit from these (Mesh, Group, Points, Line, Sprite, etc.).
-  wrapToJSON(THREE.Object3D.prototype);
-  wrapToJSON(THREE.Scene.prototype); // Scene has its OWN toJSON
-  wrapToJSON(THREE.Material.prototype);
-  wrapToJSON(THREE.Texture.prototype);
-  wrapToJSON(THREE.BufferGeometry.prototype);
-  wrapToJSON(THREE.Camera.prototype);
-  wrapToJSON(THREE.Light.prototype);
+  override(THREE.Object3D.prototype);
+  override(THREE.Scene.prototype);
+  override(THREE.Material.prototype);
+  override(THREE.Texture.prototype);
+  override(THREE.BufferGeometry.prototype);
+  override(THREE.Camera.prototype);
+  override(THREE.Light.prototype);
 
-  // InstancedMesh has its own toJSON (serializes instanceMatrix, etc.)
   if (THREE.InstancedMesh) {
-    wrapToJSON(THREE.InstancedMesh.prototype);
+    override(THREE.InstancedMesh.prototype);
   }
+  if (THREE.Fog) override(THREE.Fog.prototype);
+  if (THREE.FogExp2) override(THREE.FogExp2.prototype);
+  if (THREE.Euler) override(THREE.Euler.prototype);
 
-  // WebGLRenderer — not an Object3D but may be passed as a prop
+  // WebGLRenderer — not an Object3D
   const RendererProto = THREE.WebGLRenderer.prototype as any;
-  if (RendererProto && typeof RendererProto.toJSON !== "function") {
+  if (RendererProto) {
     RendererProto.toJSON = function (this: any) {
       return { __three: true, type: "WebGLRenderer" };
     };
-  } else {
-    wrapToJSON(RendererProto);
   }
-
-  // Fog — Scene.toJSON references this.fog.toJSON()
-  if (THREE.Fog) wrapToJSON(THREE.Fog.prototype);
-  if (THREE.FogExp2) wrapToJSON(THREE.FogExp2.prototype);
-
-  // Euler — Scene.toJSON calls this.backgroundRotation.toArray()
-  // (toArray is safe, but just in case)
-  if (THREE.Euler) wrapToJSON(THREE.Euler.prototype);
 }
 
-/** Hook: call once in the root client component to apply the patch. */
-export function useThreePatch() {
-  useEffect(() => {
-    applyPatch();
-  }, []);
-}
+// APPLY IMMEDIATELY at module load — not in useEffect.
+// This runs before any component renders.
+applyThreePatch();
 
-/** Component: renders nothing, just applies the patch on mount. */
+/** Component: renders nothing. Importing this module applies the patch. */
 export default function ThreePatch() {
-  useThreePatch();
   return null;
 }
