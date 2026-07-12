@@ -1,6 +1,8 @@
-// MUST be imported first — patches JSON.stringify to handle circular refs
-// before React 19's DevTools serialization runs. See src/lib/json-polyfill.ts.
-import "@/lib/json-polyfill";
+// Patches Three.js toJSON methods to return safe minimal descriptors
+// instead of the full recursive scene graph (which has circular refs
+// and crashes React 19's DevTools serialization). Runs client-side only.
+import { patchThreeToJSON } from "@/lib/three-patch";
+if (typeof window !== "undefined") patchThreeToJSON();
 
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter, Geist, JetBrains_Mono } from "next/font/google";
