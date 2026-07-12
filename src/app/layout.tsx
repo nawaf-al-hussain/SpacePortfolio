@@ -250,6 +250,55 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${bodyFont.variable} ${jetbrains.variable} antialiased`}
     >
+      <head>
+        {/*
+          CRITICAL: Patch JSON.stringify BEFORE any JS module loads (including
+          React DOM). React 19's DevTools serialization calls JSON.stringify on
+          component props/state. When R3F passes Three.js objects as props, the
+          circular children/parent refs crash the serialization → uncaught
+          TypeError → 3D scene disappears.
+
+          This inline script runs during HTML parsing, before any module script
+          executes. It replaces JSON.stringify with a circular-safe version that
+          also detects Three.js objects and returns minimal descriptors.
+
+          This is the ONLY reliable way to patch before React DOM caches or
+          calls JSON.stringify. Module-level patches (ThreePatch.tsx) run too
+          late — after React DOM has already loaded and set up its DevTools hook.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var orig = JSON.stringify;
+            var safe = function(value, replacer, space) {
+              var seen = new WeakSet();
+              var r = function(k, v) {
+                if (typeof v === 'object' && v !== null) {
+                  if (seen.has(v)) return '[Circular]';
+                  seen.add(v);
+                  // Three.js objects — return minimal descriptors
+                  if (v.isTexture) return '[THREE.Texture]';
+                  if (v.isMaterial) return '[THREE.Material]';
+                  if (v.isObject3D) return '[THREE.' + (v.type || 'Object3D') + ']';
+                  if (v.isBufferGeometry) return '[THREE.BufferGeometry]';
+                  if (v.isCamera) return '[THREE.Camera]';
+                  if (v.isLight) return '[THREE.Light]';
+                  if (v.isWebGLRenderer) return '[THREE.WebGLRenderer]';
+                  if (v.isFog) return '[THREE.Fog]';
+                  if (v.isEuler) return '[THREE.Euler]';
+                }
+                if (typeof replacer === 'function') return replacer(k, v);
+                return v;
+              };
+              try {
+                return orig(value, r, space);
+              } catch(e) {
+                return '[Unserializable]';
+              }
+            };
+            JSON.stringify = safe;
+          })();
+        `}} />
+      </head>
       <body className={`${TASTE.glassRefraction ? "taste-glass" : ""} ${TASTE.tactileFeedback ? "taste-tactile" : ""}`.trim() || undefined}>
         {children}
         {/* Text alternative to the WebGL experience — full, semantic content
