@@ -3,14 +3,14 @@
 /**
  * Three.js toJSON safety patch — CLIENT COMPONENT.
  *
- * MUST run at module load time (not in useEffect) so the prototypes are
- * patched BEFORE React renders any R3F component. useEffect runs after
- * the first render — too late, React's DevTools serialization already
- * crashed on the first frame.
+ * Nuclear option: walk EVERY export in the THREE module and replace
+ * toJSON on every prototype that has one. This catches all subclasses
+ * (PerspectiveCamera, OrthographicCamera, Scene, InstancedMesh, all
+ * Material subclasses, all Light subclasses, etc.) without enumeration.
  *
- * The patch is applied synchronously when this module is imported.
- * Import this module at the TOP of page.tsx, before the Experience
- * dynamic import.
+ * The safe toJSON returns { object: { type, uuid, name } } — the shape
+ * that subclasses expect (they do data.object.xxx = ... after calling
+ * super.toJSON()). No children array = no circular refs.
  */
 
 import * as THREE from "three";
@@ -21,54 +21,44 @@ export function applyThreePatch() {
   if (patched) return;
   patched = true;
 
-  const safeDescriptor = function (this: any) {
+  // Safe toJSON shape — returns { object: {...} } so subclasses that do
+  // `data.object.xxx = ...` after calling super.toJSON() don't crash on
+  // undefined. No children array = no circular refs.
+  const safeToJSON = function (this: any) {
     return {
-      __three: true,
-      type: this.type || this.constructor?.name || "Unknown",
-      uuid: this.uuid,
-      name: this.name || undefined,
+      object: {
+        type: this.type || this.constructor?.name || "Unknown",
+        uuid: this.uuid || "",
+        name: this.name || "",
+      },
     };
   };
 
-  // Override toJSON on all key prototypes to return safe descriptors.
-  // This is the nuclear option — we don't try to call the original toJSON
-  // and catch errors. We just replace it entirely. This is more reliable
-  // than wrapping because there's no chance the original runs and throws
-  // before we catch it.
-  const override = (proto: any) => {
-    if (!proto) return;
-    proto.toJSON = safeDescriptor;
-  };
-
-  override(THREE.Object3D.prototype);
-  override(THREE.Scene.prototype);
-  override(THREE.Material.prototype);
-  override(THREE.Texture.prototype);
-  override(THREE.BufferGeometry.prototype);
-  override(THREE.Camera.prototype);
-  override(THREE.Light.prototype);
-
-  if (THREE.InstancedMesh) {
-    override(THREE.InstancedMesh.prototype);
+  // Walk ALL Three.js exports. For each class (function with a prototype),
+  // replace toJSON if the prototype has one. This catches every subclass
+  // without having to enumerate them individually.
+  for (const key of Object.keys(THREE)) {
+    const Exported = (THREE as any)[key];
+    if (typeof Exported === "function" && Exported.prototype) {
+      const proto = Exported.prototype;
+      if (typeof proto.toJSON === "function") {
+        proto.toJSON = safeToJSON;
+      }
+    }
   }
-  if (THREE.Fog) override(THREE.Fog.prototype);
-  if (THREE.FogExp2) override(THREE.FogExp2.prototype);
-  if (THREE.Euler) override(THREE.Euler.prototype);
 
-  // WebGLRenderer — not an Object3D
+  // Also patch WebGLRenderer (not an Object3D, may be passed as a prop)
   const RendererProto = THREE.WebGLRenderer.prototype as any;
   if (RendererProto) {
     RendererProto.toJSON = function (this: any) {
-      return { __three: true, type: "WebGLRenderer" };
+      return { object: { type: "WebGLRenderer" } };
     };
   }
 }
 
 // APPLY IMMEDIATELY at module load — not in useEffect.
-// This runs before any component renders.
 applyThreePatch();
 
-/** Component: renders nothing. Importing this module applies the patch. */
 export default function ThreePatch() {
   return null;
 }
