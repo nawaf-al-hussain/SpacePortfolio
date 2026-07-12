@@ -207,8 +207,11 @@ export default function Experience() {
         camera={{ position: [0, 0.4, 10], fov: 45, near: 0.1, far: 400 }}
         onCreated={(state) => {
           state.scene.fog = new THREE.FogExp2("#0a0618", 0.0035);
-          // Handle for console debugging / tests
-          (window as unknown as { __r3f: typeof state }).__r3f = state;
+          // NOTE: previously stored state on window.__r3f for debugging, but
+          // React 19 dev mode tries to serialize window-level globals and
+          // the R3F state contains Three.js objects with circular refs
+          // (scene.children[i].parent → scene) → 'Converting circular
+          // structure to JSON' crash. Removed.
           // GPU context loss recovery.
           // On context loss, reload the page. To prevent infinite reload
           // loops on mobile GPUs that can't maintain a context, we track

@@ -23,7 +23,6 @@ export const useUIStore = create<UIState>((set) => ({
   setHoveredProject: (id) => set({ hoveredProject: id }),
 }));
 
-// Handle for console debugging / tests
-if (typeof window !== "undefined") {
-  (window as unknown as { __ui: typeof useUIStore }).__ui = useUIStore;
-}
+// NOTE: previously stored useUIStore on window.__ui for debugging, but
+// removed to avoid potential circular structure serialization issues in
+// React 19 dev mode.

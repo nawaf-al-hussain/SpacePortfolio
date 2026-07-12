@@ -150,7 +150,8 @@ export function initSmoothScroll(): () => void {
     smoothWheel: true,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
   });
-  (window as unknown as { __lenis: Lenis }).__lenis = lenis;
+  // NOTE: previously stored lenis on window.__lenis for debugging, but
+  // removed to avoid circular structure serialization issues in React 19.
 
   return () => {
     lenis?.destroy();
