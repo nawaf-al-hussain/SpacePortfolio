@@ -182,6 +182,11 @@ export default function Experience() {
   const profile: DeviceProfile = getDeviceProfile();
   const [dpr, setDpr] = useState<number | [number, number]>([1, profile.maxDpr]);
   const [postFx, setPostFx] = useState(profile.postFx);
+  // Debounce PerformanceMonitor changes — rapid onDecline/onIncline
+  // oscillation can cause render errors when the EffectComposer unmounts
+  // and remounts in quick succession. Only allow a quality change every
+  // 3 seconds minimum.
+  const lastPerfChange = useRef(0);
 
   return (
     <div className="fixed inset-0 z-0" aria-hidden>
@@ -205,29 +210,31 @@ export default function Experience() {
           // Handle for console debugging / tests
           (window as unknown as { __r3f: typeof state }).__r3f = state;
           // GPU context loss recovery.
-          // Desktop: reload the page (original behavior — rare, works fine).
-          // Mobile: reload too, but guard against infinite loops by checking
-          // sessionStorage. If we've reloaded for context loss within the
-          // last 30 seconds, show the static fallback instead of reloading
-          // again. This breaks the infinite-reload loop on mobile GPUs that
-          // can't maintain a WebGL context.
+          // On context loss, reload the page. To prevent infinite reload
+          // loops on mobile GPUs that can't maintain a context, we track
+          // losses in sessionStorage — if this is the 3rd+ loss within 60s,
+          // don't reload (let the CanvasErrorBoundary's static fallback
+          // handle it via a forced remount).
           state.gl.domElement.addEventListener(
             "webglcontextlost",
             (e) => {
               e.preventDefault();
-              const CONTEXT_LOSS_KEY = "__webglContextLossTime";
+              const KEY = "__wglLoss";
               const now = Date.now();
-              const last = Number(sessionStorage.getItem(CONTEXT_LOSS_KEY) || 0);
-              const within30s = now - last < 30_000;
-              sessionStorage.setItem(CONTEXT_LOSS_KEY, String(now));
-              if (within30s) {
-                // Second context loss within 30s — likely a failing GPU.
-                // Don't reload (would loop). Throw so the CanvasErrorBoundary
-                // catches it and shows the static fallback.
-                console.warn("[Experience] Repeated WebGL context loss — showing static fallback.");
-                throw new Error("Repeated WebGL context loss");
+              const times: number[] = JSON.parse(
+                sessionStorage.getItem(KEY) || "[]"
+              ).filter((t: number) => now - t < 60_000);
+              times.push(now);
+              sessionStorage.setItem(KEY, JSON.stringify(times));
+              if (times.length >= 3) {
+                // Repeated losses — GPU can't hold a context. Stop reloading
+                // and let the page stay as-is. The CanvasErrorBoundary will
+                // catch any subsequent render errors and show the static
+                // fallback with auto-retry.
+                console.warn("[Experience] Repeated context loss — stopping reloads.");
+                sessionStorage.removeItem(KEY);
               } else {
-                console.warn("[Experience] WebGL context lost — reloading page.");
+                console.warn(`[Experience] Context lost (${times.length}/3) — reloading.`);
                 window.location.reload();
               }
             },
@@ -235,20 +242,23 @@ export default function Experience() {
           );
         }}
       >
-        {/* Adaptive performance: if FPS drops, scale DPR down and disable
-            post-FX. Recovers automatically when the GPU catches up.
-            NOTE: removed flipflops/onFallback — the permanent fallback
-            was too aggressive on mobile (once triggered, quality never
-            recovered even after the GPU pressure passed). Now it just
-            oscillates between full and reduced quality as needed. */}
+        {/* Adaptive performance: if FPS drops, scale DPR down. Recovers
+            automatically when the GPU catches up. Debounced to 3s minimum
+            between changes to prevent rapid oscillation. NOTE: postFx is
+            NOT toggled at runtime — unmounting/remounting the EffectComposer
+            mid-render is risky. Only DPR adapts. */}
         <PerformanceMonitor
           onIncline={() => {
+            const now = Date.now();
+            if (now - lastPerfChange.current < 3000) return;
+            lastPerfChange.current = now;
             setDpr([1, profile.maxDpr]);
-            if (profile.postFx) setPostFx(true);
           }}
           onDecline={() => {
+            const now = Date.now();
+            if (now - lastPerfChange.current < 3000) return;
+            lastPerfChange.current = now;
             setDpr(1);
-            setPostFx(false);
           }}
         />
         <TabVisibilityPause />

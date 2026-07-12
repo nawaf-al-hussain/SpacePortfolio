@@ -3,22 +3,21 @@
 import { Component, type ReactNode } from "react";
 
 /**
- * Error boundary for the 3D canvas. If the WebGL scene crashes (context
- * loss, shader compile error, OOM, driver reset), we show a static gradient
- * background instead of letting the error propagate and white-screen the
- * whole page.
+ * Error boundary for the 3D canvas. If the WebGL scene crashes, we show a
+ * static gradient background and RETRY INDEFINITELY with exponential backoff.
  *
- * AUTO-RETRY: On mobile, WebGL context loss is often temporary (GPU memory
- * pressure recovers). Instead of permanently showing the fallback, this
- * boundary auto-retries mounting the canvas up to MAX_RETRIES times, with
- * RETRY_DELAY ms between attempts. If all retries fail, it stays on the
- * static fallback — the DOM overlays still work.
+ * Previous version gave up after 3 retries — that caused the 3D to
+ * permanently disappear when a transient error was caught. Now it never
+ * gives up: 1s → 2s → 4s → 8s → 16s (capped), repeating forever.
+ * Transient errors (GPU memory hiccups, texture loading timeouts) recover
+ * automatically. Permanent errors (no WebGL) are handled by the
+ * useWebGLSupport check in page.tsx, which never mounts the canvas at all.
  */
 type Props = { children: ReactNode };
-type State = { hasError: boolean; retryCount: number };
+type State = { hasError: boolean; retryCount: number; lastError?: string };
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2500; // ms
+const INITIAL_DELAY = 1000;
+const MAX_DELAY = 16000;
 
 export default class CanvasErrorBoundary extends Component<Props, State> {
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -28,27 +27,32 @@ export default class CanvasErrorBoundary extends Component<Props, State> {
     this.state = { hasError: false, retryCount: 0 };
   }
 
-  static getDerivedStateFromError(): State {
-    return { hasError: true, retryCount: 0 };
+  static getDerivedStateFromError(error: unknown): State {
+    return {
+      hasError: true,
+      retryCount: 0,
+      lastError: error instanceof Error ? error.message : String(error),
+    };
   }
 
   componentDidCatch(error: unknown) {
-    console.error("[CanvasErrorBoundary] 3D scene crashed:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[CanvasErrorBoundary] 3D scene crashed:", msg);
     this.scheduleRetry();
   }
 
   scheduleRetry() {
-    if (this.state.retryCount >= MAX_RETRIES) return;
     if (this.retryTimer) clearTimeout(this.retryTimer);
+    const delay = Math.min(INITIAL_DELAY * 2 ** this.state.retryCount, MAX_DELAY);
+    console.log(
+      `[CanvasErrorBoundary] Retry ${this.state.retryCount + 1} in ${delay}ms...`
+    );
     this.retryTimer = setTimeout(() => {
-      console.log(
-        `[CanvasErrorBoundary] Retry ${this.state.retryCount + 1}/${MAX_RETRIES}...`
-      );
       this.setState((s) => ({
         hasError: false,
         retryCount: s.retryCount + 1,
       }));
-    }, RETRY_DELAY);
+    }, delay);
   }
 
   componentWillUnmount() {
@@ -57,7 +61,6 @@ export default class CanvasErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      const exhausted = this.state.retryCount >= MAX_RETRIES;
       return (
         <div
           className="fixed inset-0 z-0"
@@ -77,11 +80,9 @@ export default class CanvasErrorBoundary extends Component<Props, State> {
               backgroundRepeat: "repeat",
             }}
           />
-          {!exhausted && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">
-              Reconnecting 3D engine...
-            </div>
-          )}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">
+            Reconnecting 3D engine...
+          </div>
         </div>
       );
     }
