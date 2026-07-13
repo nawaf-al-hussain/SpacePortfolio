@@ -7,7 +7,7 @@ export const SITE_URL = "https://nawaf-al-hussain.vercel.app";
 export const PROFILE = {
   name: "Nawaf Al Hussain",
   firstName: "Nawaf",
-  role: "Platform Engineer & Cloud Architect",
+  role: "Platform Engineer · Cloud Architect · Backend Specialist",
   status: "CS undergrad @ UIU · building systems that never sleep",
   taglines: [
     "deploy justice one commit at a time.",
@@ -16,25 +16,25 @@ export const PROFILE = {
     "automate what slows teams down.",
     "architect it, ship it, make it fast.",
   ],
-  bio: "I'm a Computer Science & Engineering undergrad at United International University, Dhaka, building end-to-end systems across web, backend, cloud, and AI. I treat every commit like a closed case file — from AI-powered recruitment platforms to real-time multiplayer game engines, reverse-engineered Batman games, and database-theory tooling. It's not who I am underneath, but what I code that defines me.",
+  bio: "Versatile technology professional with experience in software engineering, cloud architecture, and business operations. Proven expertise in designing and implementing high-availability backend systems using TypeScript and Node.js, with production systems handling 10K+ concurrent users. A unique combination of technical and business skills developed through software engineering, private tutoring with AI integration, BPO sales management, and 5+ years of retail business management. It's not who I am underneath, but what I code that defines me.",
   about: {
-    lead: "I build across the full stack to reduce dependencies and move faster — designing APIs, building frontends, wiring up databases, and deploying to the cloud. My work spans AI platforms, real-time game engines, developer tooling, and browser-based game rebuilds.",
-    p2: "I'm currently studying Computer Science & Engineering at United International University in Dhaka, where I balance coursework with shipping real systems — from a recruitment anti-ghosting engine to a database serializability solver and a browser-based rebuild of The Dark Knight Rises (J2ME, 2012).",
-    p3: "I focus on building simple, fast, and maintainable systems — designed for actual usage, not just clean implementations. It's not who I am underneath, but what I code that defines me.",
+    lead: "I build across the full stack to reduce dependencies and move faster — designing APIs, building frontends, wiring up databases, and deploying to the cloud. My work spans AI-powered recruitment platforms, real-time multiplayer game engines, and fine-tuned open-source LLMs for education.",
+    p2: "I'm currently studying Computer Science & Engineering at United International University in Dhaka, where I balance coursework with shipping real production systems — from a recruitment platform with ML-powered anti-ghosting detection to an event-sourced board game engine powering multiple games from a single modular core.",
+    p3: "Beyond code, I bring a unique blend of technical and business skills: 5+ years of retail management, BPO sales experience, and private tutoring with AI integration. I focus on building simple, fast, and maintainable systems designed for actual usage, not just clean implementations.",
     credentials: [
       "BSc, Computer Science & Engineering — UIU, Dhaka (2024–Present)",
-      "Focus: Full-stack · Cloud · AI/ML · Systems Design",
-      "Dark Knight of Code — Batman-themed portfolio @ nawaf-al-hussain.vercel.app",
+      "IAL: A in Pure Mathematics, A in Physics (full UMS in AS units)",
+      "IGCSE: A* in Math, Physics, Chemistry, English, ICT, Bangla",
       "Based in Dhaka, Bangladesh",
     ],
   },
-  email: "nkhondokar2420136@bscse.uiu.ac.bd",
+  email: "nawafalhussain81@gmail.com",
   location: "Dhaka, Bangladesh",
-  /** Add your own resume PDF at public/Resume_NawafAlHussain.pdf to enable this link. */
   resume: "/Resume_NawafAlHussain.pdf",
   siteUrl: `${SITE_URL}/`,
   socials: {
     github: "https://github.com/nawaf-al-hussain",
+    linkedin: "https://www.linkedin.com/in/nawaf-al-hussain/",
     portfolio: "https://nawaf-al-hussain.vercel.app",
   },
 };
@@ -50,34 +50,50 @@ export type Job = {
 
 export const EXPERIENCE: Job[] = [
   {
-    company: "UIU",
-    title: "BSc Computer Science & Engineering",
-    range: "2024 — Present",
+    company: "Independent",
+    title: "Private Tutor & AI Education Developer",
+    range: "Nov 2023 — Present",
     location: "Dhaka, Bangladesh",
     blurb:
-      "Studying Computer Science & Engineering at United International University — building the theoretical foundation alongside practical projects in algorithms, databases, systems design, and software engineering.",
+      "Tutoring IGCSE/IAL Physics, Chemistry, Mathematics, and English while building Syllab AI — a fine-tuned LLM tutoring platform with RAG architecture for personalized student feedback.",
     points: [
-      "Coursework: Data Structures, Algorithms, DBMS, Operating Systems, Software Engineering, Computer Networks",
-      "Built Conflict Check — a database serializability solver that generates precedence graphs to verify conflict serializability",
-      "Built a Section Planner app to help students pick course sections without time-slot conflicts",
-      "Maintaining a strong academic record while shipping real-world side projects in parallel",
-      "Active in the coding community — participating in hackathons and online coding challenges",
+      "Tutored 12 students in IGCSE/IAL Physics, Chemistry, Mathematics, and English, maintaining 7 active students",
+      "Delivered university-level instruction in SPL, OOP, Discrete Mathematics, and Probability & Statistics",
+      "Developed Syllab AI platform with interactive chatbot interface for personalized tutoring and real-time feedback",
+      "Achieved A* grades in O-Levels and A grades in A-Levels through customized learning strategies and AI-powered tools",
+      "Created individualized lesson plans addressing learning gaps using both traditional and AI-driven educational technologies",
     ],
   },
   {
-    company: "GitHub",
-    title: "Independent Developer & Open Source Contributor",
-    range: "2024 — Present",
-    location: "Remote · Dhaka-based",
+    company: "SkyTech",
+    title: "Closer (Promoted from Telesales Specialist)",
+    range: "Feb 2023 — Nov 2023",
+    location: "Dhaka, Bangladesh",
     blurb:
-      "Building and shipping systems end-to-end across the full stack — from AI-powered recruitment platforms to real-time multiplayer game engines and browser-based game rebuilds.",
+      "BPO sales role serving Australian customers — promoted to Closer after demonstrating exceptional telesales performance on government heat pump rebate programs.",
     points: [
-      "Built NexHire — an AI-powered recruitment platform with candidate management, job posting, interviews, and analytics; migrated from MS SQL Server to Neon PostgreSQL",
-      "Shipped Game of Life 2 — a real-time multiplayer board game engine with a React frontend",
-      "Reverse-engineered The Dark Knight Rises (Gameloft J2ME, 2012) into a browser-based TypeScript rebuild (TDKR) using authentic game assets",
-      "Built Conflict Check — a database serializability solver using precedence graphs and cycle detection",
-      "Tech stack: Java, Spring Boot, TypeScript, Next.js, React, Python, C#, Node.js, Docker, Redis, SQL",
-      "Maintaining 16+ public repositories on GitHub",
+      "Promoted to Closer after demonstrating exceptional telesales performance",
+      "Closed sales from telesales leads for government rebate heat pump programs",
+      "Developed advanced negotiation techniques to overcome customer objections",
+      "Mentored telesales team members to improve lead quality and conversion rates",
+      "Conducted outbound calls to Australian customers about government heat pump rebates",
+      "Built rapport by explaining complex rebate programs and financial benefits clearly",
+    ],
+  },
+  {
+    company: "CityGroup",
+    title: "Store Manager & Business Operations",
+    range: "Mar 2018 — Jan 2023",
+    location: "Dhaka, Bangladesh (Family Business)",
+    blurb:
+      "5+ years managing full retail operations at a family business — inventory, financial services, team supervision, and customer account management.",
+    points: [
+      "Managed full retail operations including inventory management, stock receiving, and product display optimization",
+      "Oversaw financial operations: daily cash handling, mobile recharge services, mobile banking transactions, and comprehensive accounting",
+      "Supervised delivery team and field workers with proper goods tracking and accountability",
+      "Maintained detailed customer account records and outstanding payments",
+      "Operated independently as sole manager during peak periods handling all business operations",
+      "Developed expertise in multi-service retail combining traditional grocery sales with financial services and telecommunications",
     ],
   },
 ];
@@ -90,12 +106,12 @@ export type Skill = {
 };
 
 export const SKILLS: Skill[] = [
-  { num: "01", name: "Frontend", items: "React · Next.js · Tailwind CSS · Framer Motion" },
-  { num: "02", name: "Backend", items: "Spring Boot · Node.js · REST APIs · SQL" },
-  { num: "03", name: "Languages", items: "Java · TypeScript · Python · C# · JavaScript" },
-  { num: "04", name: "Cloud & Infra", items: "Docker · Redis · Vercel · Neon Postgres" },
-  { num: "05", name: "AI & Automation", items: "LLMs · RAG · Vector DBs · Automation" },
-  { num: "06", name: "Tools", items: "Git · GitHub Actions · Linux · Reverse Engineering" },
+  { num: "01", name: "Languages", items: "C · C++ · C# · TypeScript · JavaScript · Python · Java · SQL · Bash" },
+  { num: "02", name: "Backend", items: "Node.js · Express · NestJS · Spring Boot 3.2 · Django · FastAPI · REST" },
+  { num: "03", name: "Cloud & DevOps", items: "Docker · Kubernetes · Terraform · CI/CD · Nginx · Serverless" },
+  { num: "04", name: "Databases", items: "PostgreSQL · MongoDB · Redis · SQLite · SQL Server · Neon · Supabase" },
+  { num: "05", name: "AI/ML", items: "PyTorch · Transformers · RAG · Vector DBs · Fine-tuning · NLP" },
+  { num: "06", name: "Frontend", items: "React 18 · Vite · Tailwind CSS · Konva.js · JavaFX 17 · HTML/CSS" },
 ];
 
 export type Project = {
@@ -118,14 +134,42 @@ export const PROJECTS: Project[] = [
   {
     id: "nexhire",
     title: "NexHire",
-    meta: "2025 · Full-stack · AI",
-    tagline: "AI-powered recruitment anti-ghosting engine",
+    meta: "2025 · Full-stack · AI · ML",
+    tagline: "High-scale recruitment with anti-ghosting AI",
     description:
-      "A comprehensive recruitment platform with candidate management, job posting, interview scheduling, and analytics. Includes an AI-powered anti-ghosting engine to keep candidates engaged. Migrated from MS SQL Server to Neon PostgreSQL for Vercel-ready deployment.",
-    tags: ["Java", "Spring Boot", "Next.js", "Neon Postgres", "AI"],
+      "A high-scale recruitment management system with a normalized 3NF relational schema across 60+ entities. Includes string similarity algorithms (Jaro-Winkler, Levenshtein, TF-IDF cosine) for candidate matching at 94% precision, ML-powered anti-ghosting risk scorer (0.78 AUC-ROC), onboarding success predictor (85% accuracy), and an NLP pipeline for resume analysis with PDF/DOCX extraction and named entity recognition.",
+    tags: ["Node.js", "Express", "React", "Vite", "PostgreSQL", "Neon", "Redis", "C# .NET", "JWT"],
     colorA: "#7c3aed",
     colorB: "#1da1f2",
-    link: "https://github.com/nawaf-al-hussain/NexHire",
+    link: "https://nexhire-frontend.vercel.app/",
+    linkLabel: "Visit Live Site",
+    featured: true,
+  },
+  {
+    id: "syllabai",
+    title: "Syllab AI",
+    meta: "2025 · AI/ML · Education · Ongoing",
+    tagline: "Fine-tuned LLMs for personalized tutoring",
+    description:
+      "A hybrid AI system combining fine-tuned open-source language models (Granite 4.0 1B, Phi-3-mini) with a SQLite vector database for RAG architecture. Stores 500+ past paper questions with FTS5 and vector embeddings across Edexcel and Cambridge IGCSE/IAL Physics. Fine-tuned on 1000+ curated Q&A pairs achieving 40% faster inference with GGUF quantization while maintaining 95% accuracy. Deployed on Hugging Face Spaces with sub-3-second response times.",
+    tags: ["Python", "PyTorch", "Transformers", "Granite 4.0", "Phi-3-mini", "SQLite-vec", "FTS5", "Gradio"],
+    colorA: "#10b981",
+    colorB: "#3b82f6",
+    link: "https://syllabai-frontend.vercel.app",
+    linkLabel: "Visit Live Site",
+    featured: true,
+  },
+  {
+    id: "game-engine",
+    title: "Multiplayer Game Engine",
+    meta: "2025 · Distributed · Event-Sourced · Ongoing",
+    tagline: "One engine, many games — server-authoritative",
+    description:
+      "A universal, event-driven board game engine in Java 17 using DDD and event sourcing principles. Powers multiple games (The Game of Life 2, Monopoly, Clue) from a single modular core with zero game-specific coupling. Server-authoritative multiplayer via Spring Boot 3.2 WebSocket (STOMP) and Redis Pub/Sub, with an event-sourced persistence layer in PostgreSQL (Neon) for full game replayability. Dual frontends: React 18 + Konva.js web client and JavaFX 17 desktop client.",
+    tags: ["Java 17", "Spring Boot 3.2", "WebSocket/STOMP", "Redis Pub/Sub", "PostgreSQL", "Hibernate", "Docker", "React 18", "Konva.js", "JavaFX 17"],
+    colorA: "#22d3ee",
+    colorB: "#a3e635",
+    link: "https://github.com/nawaf-al-hussain",
     linkLabel: "View on GitHub",
     featured: true,
   },
@@ -141,7 +185,6 @@ export const PROJECTS: Project[] = [
     colorB: "#1a1a1a",
     link: "https://nawaf-al-hussain.vercel.app",
     linkLabel: "Visit Live Site",
-    featured: true,
   },
   {
     id: "tdkr",
@@ -157,19 +200,6 @@ export const PROJECTS: Project[] = [
     linkLabel: "View on GitHub",
   },
   {
-    id: "gol2",
-    title: "Game of Life 2",
-    meta: "2025 · Real-time · Multiplayer",
-    tagline: "Real-time multiplayer board game engine",
-    description:
-      "A board game engine implementation of The Game of Life with a React frontend and real-time multiplayer support. Players join a shared session and progress through life events together in real time.",
-    tags: ["React", "Node.js", "WebSocket", "Real-time"],
-    colorA: "#22d3ee",
-    colorB: "#a3e635",
-    link: "https://github.com/nawaf-al-hussain/game-of-life-2",
-    linkLabel: "View on GitHub",
-  },
-  {
     id: "conflict-check",
     title: "Conflict Check",
     meta: "2024 · Database theory · Tool",
@@ -180,19 +210,6 @@ export const PROJECTS: Project[] = [
     colorA: "#ef4444",
     colorB: "#fbbf24",
     link: "https://github.com/nawaf-al-hussain/conflict-check",
-    linkLabel: "View on GitHub",
-  },
-  {
-    id: "syllabai",
-    title: "SyllabAI",
-    meta: "2025 · AI · Education",
-    tagline: "AI-powered syllabus assistant",
-    description:
-      "An AI-powered tool for syllabus management and educational assistance. Currently in development — exploring LLM applications for academic course planning, study aids, and intelligent content recommendations.",
-    tags: ["TypeScript", "AI", "LLM", "Education"],
-    colorA: "#10b981",
-    colorB: "#3b82f6",
-    link: "https://github.com/nawaf-al-hussain/SyllabAI",
     linkLabel: "View on GitHub",
   },
   {

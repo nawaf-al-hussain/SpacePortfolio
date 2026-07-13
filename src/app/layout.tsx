@@ -202,7 +202,11 @@ const jsonLd = {
         "Artificial Intelligence",
         "Cloud architecture",
       ],
-      sameAs: [PROFILE.socials.github, PROFILE.socials.portfolio],
+      sameAs: [
+        PROFILE.socials.github,
+        PROFILE.socials.linkedin,
+        PROFILE.socials.portfolio,
+      ],
     },
     {
       "@type": "WebSite",
