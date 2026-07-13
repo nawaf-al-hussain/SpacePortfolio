@@ -1,5 +1,11 @@
 "use client";
 
+// ThreePatch MUST be imported before Experience — it patches Three.js
+// prototype.toJSON methods synchronously at module load time. If Experience
+// loads first, React's DevTools serialization crashes on circular Object3D
+// refs before the patch runs.
+import "@/components/ThreePatch";
+
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { TOTAL_PAGES } from "@/lib/journey";
@@ -96,6 +102,9 @@ export default function Home() {
       />
 
       {/* 3D scene (fixed, behind everything).
+          ThreePatch is imported at the top of this file (before Experience)
+          so it runs synchronously at module load — patches Three.js
+          prototype.toJSON before any R3F component renders.
           Wrapped in an error boundary so a WebGL crash doesn't take down
           the whole page — the DOM overlays still work on a static bg.
           Also gated on WebGL support — old/broken GPUs skip the canvas. */}
