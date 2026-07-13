@@ -172,12 +172,14 @@ function MobileSheet({
         </button>
       )}
 
-      {/* Body: conditional render. Mobile collapsed = no DOM. Desktop = always. */}
+      {/* Body: conditional render. Mobile collapsed = no DOM. Desktop = always.
+          Mobile expanded: up to 85vh with internal scroll (was 72vh — too
+          short for the longer resume content). */}
       {showBody && (
         <div
           className={
             isMobile
-              ? "pointer-events-auto max-h-[72vh] overflow-y-auto p-5 pt-0"
+              ? "pointer-events-auto max-h-[85vh] overflow-y-auto p-5 pt-0"
               : ""
           }
         >
@@ -288,7 +290,7 @@ export default function SectionOverlays() {
           title={<>Full stack, fewer <span className="text-cyan">bottlenecks</span></>}
           expanded={aboutExpanded}
           onToggle={() => setAboutExpanded((v) => !v)}
-          desktopClass="lg:max-h-[80vh] lg:w-[470px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:ml-16"
+          desktopClass="lg:max-h-[85vh] lg:w-[470px] lg:max-w-[calc(100vw-4rem)] lg:overflow-y-auto lg:ml-16"
         >
           <p className="mt-4 text-[14px] leading-relaxed text-white/85 sm:mt-5 sm:text-[15px] lg:mt-5">
             {PROFILE.about.lead}
@@ -323,7 +325,7 @@ export default function SectionOverlays() {
           title={job.title}
           expanded={expExpanded}
           onToggle={() => setExpExpanded((v) => !v)}
-          desktopClass="lg:max-h-[80vh] lg:w-[560px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24"
+          desktopClass="lg:max-h-[85vh] lg:w-[560px] lg:max-w-[calc(100vw-4rem)] lg:overflow-y-auto lg:mr-24"
         >
           <div className="pointer-events-auto mt-4 flex flex-wrap gap-2 sm:gap-3">
             {EXPERIENCE.map((j, i) => (
@@ -363,12 +365,12 @@ export default function SectionOverlays() {
               scrollbarWidth: "thin",
               scrollbarColor: "rgba(76,201,240,0.35) transparent",
             }}
-            className="mt-4 space-y-3 pr-2 lg:max-h-[300px] lg:overflow-y-auto"
+            className="mt-4 space-y-2 pr-2 lg:max-h-[40vh] lg:overflow-y-auto"
           >
             {job.points.map((point) => (
               <li
                 key={point}
-                className="flex gap-3 text-[13px] leading-relaxed text-white/80 sm:text-sm"
+                className="flex gap-2.5 text-[12px] leading-relaxed text-white/80 sm:text-[13px] lg:text-sm"
               >
                 <span className="mt-0.5 shrink-0 text-cyan">▹</span>
                 <span>{point}</span>
@@ -453,7 +455,7 @@ export default function SectionOverlays() {
           title={<>Let's make something <span className="text-cyan">together</span></>}
           expanded={contactExpanded}
           onToggle={() => setContactExpanded((v) => !v)}
-          desktopClass="lg:max-h-[80vh] lg:w-[460px] lg:max-w-[calc(100vw-4rem)] lg:overflow-visible lg:mr-24"
+          desktopClass="lg:max-h-[85vh] lg:w-[460px] lg:max-w-[calc(100vw-4rem)] lg:overflow-y-auto lg:mr-24"
         >
           <p className="mt-4 text-[15px] leading-relaxed text-white/80 lg:mt-4">
             {CONTACT_COPY}

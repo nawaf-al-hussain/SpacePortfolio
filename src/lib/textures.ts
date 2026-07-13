@@ -205,13 +205,14 @@ export function makeProjectCardTexture(project: Project): THREE.CanvasTexture {
   ctx.font = `400 26px ${DISPLAY_FONT}`;
   wrapText(ctx, project.tagline, 40, 268, W - 90, 34);
 
-  // Tech tags — simple mono row in brand color
+  // Tech tags — smaller font + more wrap width to fit the longer tag
+  // lists from the resume (e.g. NexHire has 9 tags). Wrap up to 2 lines.
   const tagGrad = ctx.createLinearGradient(0, 0, W, 0);
   tagGrad.addColorStop(0, project.colorB);
   tagGrad.addColorStop(1, "#7df9ff");
   ctx.fillStyle = tagGrad;
-  ctx.font = `600 21px ${MONO_FONT}`;
-  wrapText(ctx, project.tags.join(" · ").toUpperCase(), 40, 344, W - 90, 30);
+  ctx.font = `600 17px ${MONO_FONT}`;
+  wrapText(ctx, project.tags.join(" · ").toUpperCase(), 40, 340, W - 80, 24);
 
   return toTexture(canvas);
 }
@@ -284,10 +285,12 @@ export function makeSkillCardTexture(skill: Skill): THREE.CanvasTexture {
   wrapText(ctx, skill.name, 36, 106, W - 190, 58);
   ctx.shadowBlur = 0;
 
-  // Items — bright cyan, large
+  // Items — bright cyan. Smaller font + more wrap width to fit the
+  // longer skill lists from the resume (e.g. "C · C++ · C# · TypeScript ·
+  // JavaScript · Python · Java · SQL · Bash" is ~9 items).
   ctx.fillStyle = "#7df9ff";
-  ctx.font = `600 26px ${MONO_FONT}`;
-  wrapText(ctx, skill.items.toUpperCase(), 36, 216, W - 80, 36);
+  ctx.font = `600 20px ${MONO_FONT}`;
+  wrapText(ctx, skill.items.toUpperCase(), 36, 200, W - 60, 28);
 
   return toTexture(canvas);
 }

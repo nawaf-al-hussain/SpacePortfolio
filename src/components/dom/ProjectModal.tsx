@@ -50,7 +50,7 @@ export default function ProjectModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ type: "spring", stiffness: 300, damping: 26, mass: 0.9 }}
-            className="glass relative w-[92vw] max-w-2xl overflow-hidden rounded-3xl p-0"
+            className="glass relative w-[92vw] max-w-2xl max-h-[88vh] overflow-hidden rounded-3xl p-0"
             onClick={(e) => e.stopPropagation()}
             onWheel={(e) => e.stopPropagation()}
           >
@@ -111,20 +111,20 @@ export default function ProjectModal() {
               </button>
             </div>
 
-            {/* body */}
-            <div className="p-8">
-              <p className="font-display text-lg font-medium text-cyan">
+            {/* body — scrollable for longer descriptions + more tags */}
+            <div className="max-h-[calc(88vh-160px)] overflow-y-auto p-6 sm:p-8">
+              <p className="font-display text-base font-medium text-cyan sm:text-lg">
                 {project.tagline}
               </p>
-              <p className="mt-4 leading-relaxed text-white/70">
+              <p className="mt-3 text-sm leading-relaxed text-white/70 sm:mt-4 sm:text-base">
                 {project.description}
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
                 {project.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-white/15 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-white/60"
+                    className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/60 sm:text-[10px]"
                   >
                     {tag}
                   </span>
