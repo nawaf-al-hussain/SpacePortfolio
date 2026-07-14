@@ -21,6 +21,7 @@ import HUDRail from "@/components/dom/HUDRail";
 import SocialRail from "@/components/dom/SocialRail";
 import ImpactFlash from "@/components/dom/ImpactFlash";
 import CustomCursor from "@/components/dom/CustomCursor";
+import BackToTop from "@/components/dom/BackToTop";
 import CanvasErrorBoundary from "@/components/canvas/CanvasErrorBoundary";
 
 const Experience = dynamic(() => import("@/components/canvas/Experience"), {
@@ -125,6 +126,7 @@ export default function Home() {
       <ProjectModal />
       <ImpactFlash />
       <CustomCursor />
+      <BackToTop />
       <Loader />
     </main>
   );

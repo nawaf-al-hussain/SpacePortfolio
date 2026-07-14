@@ -93,6 +93,20 @@ body {
   transform: scale(0.96);
 }
 
+/* Keyboard focus states — visible cyan ring for accessibility.
+   Only shows on keyboard navigation (focus-visible), not mouse clicks. */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #7df9ff;
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(125, 249, 255, 0.4);
+}
+
 /* Corner brackets like the reference HUD frames */
 .hud-corners {
   position: relative;
