@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useRef } from "react";
 import type { SectionId } from "@/lib/journey";
 import { PROFILE } from "@/lib/data";
@@ -85,6 +86,17 @@ export default function Navbar() {
             );
           })}
         </nav>
+
+        {/* Space Tour — separate page link */}
+        <MagneticButton strength={0.25} className="pointer-events-auto">
+          <Link
+            href="/space-tour"
+            data-cursor
+            className="block rounded-full border border-nebula/60 px-5 py-2 font-mono text-xs uppercase tracking-hud text-nebula-soft transition-all duration-300 hover:bg-nebula/15 hover:shadow-[0_0_24px_rgba(124,58,237,0.4)] active:scale-[0.96]"
+          >
+            Space Tour ↗
+          </Link>
+        </MagneticButton>
 
         {/* Résumé */}
         <MagneticButton strength={0.25} className="pointer-events-auto">
